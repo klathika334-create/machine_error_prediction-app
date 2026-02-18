@@ -256,38 +256,41 @@ import time as _time
 alert_timestamps = []  # timestamps of recent alerts
 MAX_ALERTS_PER_MINUTE = 6
 
-# ── Email configuration ──
-import smtplib
+# ── Email configuration (saves to Gmail Drafts via IMAP) ──
+import imaplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_email_draft(solution):
-    """Send a solution as an email draft via SMTP."""
+    """Save a solution as a draft in Gmail's Drafts folder via IMAP.
+    The draft has no 'To' field so the user can add recipients later."""
     email_user = os.environ.get('EMAIL_ADDRESS', '')
     email_pass = os.environ.get('EMAIL_APP_PASSWORD', '')
-    email_smtp = os.environ.get('EMAIL_SMTP_SERVER', 'smtp.gmail.com')
-    email_port = int(os.environ.get('EMAIL_SMTP_PORT', '587'))
+    imap_server = os.environ.get('EMAIL_IMAP_SERVER', 'imap.gmail.com')
+    imap_port = int(os.environ.get('EMAIL_IMAP_PORT', '993'))
     
     if not email_user or not email_pass:
         print('[EMAIL] Skipping — EMAIL_ADDRESS or EMAIL_APP_PASSWORD not set in .env')
         return False
     
     try:
+        # Build the email (no To: field — user adds recipients later)
         msg = MIMEMultipart()
         msg['From'] = email_user
-        msg['To'] = email_user  # send to self as draft
         msg['Subject'] = solution['subject']
         msg.attach(MIMEText(solution['body'], 'plain'))
         
-        with smtplib.SMTP(email_smtp, email_port) as server:
-            server.starttls()
-            server.login(email_user, email_pass)
-            server.send_message(msg)
+        # Connect via IMAP and save to Drafts
+        imap = imaplib.IMAP4_SSL(imap_server, imap_port)
+        imap.login(email_user, email_pass)
+        # Gmail uses '[Gmail]/Drafts' as the drafts folder
+        imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(imaplib.time.time()), msg.as_bytes())
+        imap.logout()
         
-        print(f'[EMAIL] Draft sent: {solution["subject"][:60]}...')
+        print(f'[EMAIL] Draft saved: {solution["subject"][:60]}...')
         return True
     except Exception as e:
-        print(f'[EMAIL] Failed to send: {e}')
+        print(f'[EMAIL] Failed to save draft: {e}')
         return False
 
 @app.route('/api/fault-alert')
