@@ -6,9 +6,374 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Machine Error Prediction Dashboard</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Toast Alert Styles */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            min-width: 340px;
+            max-width: 420px;
+            padding: 1rem 1.2rem;
+            border-radius: 0.8rem;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            animation: toastSlideIn 0.5s ease-out, toastFadeOut 0.5s ease-in 7s forwards;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.5);
+            animation: toastTimer 7.5s linear forwards;
+        }
+
+        .toast.critical {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.95));
+            border-color: #ef4444;
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.9), rgba(180, 83, 9, 0.95));
+            border-color: #f59e0b;
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.3), rgba(6, 182, 212, 0.4));
+            border-color: #22d3ee;
+        }
+
+        .toast .toast-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .toast .toast-body {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .toast .toast-close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .toast .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes toastFadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(50%);
+            }
+        }
+
+        @keyframes toastTimer {
+            from {
+                width: 100%;
+            }
+
+            to {
+                width: 0%;
+            }
+        }
+
+        /* Solutions Panel Styles */
+        #solutions-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+        }
+
+        #solutions-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 520px;
+            height: 100vh;
+            background: rgba(24, 24, 36, 0.98);
+            border-left: 1px solid #333;
+            z-index: 1600;
+            flex-direction: column;
+            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .solutions-header {
+            padding: 1.2rem 1.5rem;
+            background: #23233b;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .solutions-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #22d3ee;
+        }
+
+        .solutions-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .solution-card {
+            background: rgba(40, 40, 60, 0.85);
+            border-radius: 1rem;
+            padding: 1rem 1.2rem;
+            border: 1px solid #333;
+            transition: border-color 0.2s;
+        }
+
+        .solution-card:hover {
+            border-color: #22d3ee;
+        }
+
+        .solution-card.critical {
+            border-left: 4px solid #ef4444;
+        }
+
+        .solution-card.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .solution-card.info {
+            border-left: 4px solid #22d3ee;
+        }
+
+        .solution-card .card-severity {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .solution-card.critical .card-severity {
+            background: #ef444433;
+            color: #ef4444;
+        }
+
+        .solution-card.warning .card-severity {
+            background: #f59e0b33;
+            color: #f59e0b;
+        }
+
+        .solution-card.info .card-severity {
+            background: #22d3ee33;
+            color: #22d3ee;
+        }
+
+        .solution-card .card-subject {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+            color: #fff;
+        }
+
+        .solution-card .card-time {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 0.6rem;
+        }
+
+        .solution-card .card-body {
+            font-size: 0.8rem;
+            color: #ccc;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .solution-card.expanded .card-body {
+            max-height: 600px;
+        }
+
+        .solution-card .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .solution-card .card-actions button {
+            padding: 0.3rem 0.8rem;
+            border: 1px solid #444;
+            border-radius: 0.4rem;
+            background: #23233b;
+            color: #fff;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .solution-card .card-actions button:hover {
+            background: #22d3ee;
+            border-color: #22d3ee;
+            color: #000;
+        }
+
+        .empty-solutions {
+            text-align: center;
+            color: #666;
+            padding: 3rem 1rem;
+            font-size: 0.95rem;
+        }
+
+        /* Notification badge on Solutions button */
+        .nav-btn-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 0 8px #ef4444aa;
+            animation: badge-pulse 1.5s infinite;
+        }
+
+        @keyframes badge-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        @keyframes shake {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(10deg);
+            }
+
+            50% {
+                transform: rotate(0deg);
+            }
+
+            75% {
+                transform: rotate(-10deg);
+            }
+
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+    </style>
 </head>
 
 <body style="margin:0; padding:0; background: #181824; color: #fff; font-family: 'Segoe UI',sans-serif;">
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Solutions Overlay -->
+    <div id="solutions-overlay" onclick="closeSolutions()"></div>
+
+    <!-- Solutions Panel -->
+    <div id="solutions-panel">
+        <div class="solutions-header">
+            <h2>📧 Solution Drafts</h2>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+                <button onclick="clearSolutions()"
+                    style="padding:0.4rem 0.8rem; border-radius:0.4rem; border:1px solid #444; background:#23233b; color:#aaa; font-size:0.8rem; cursor:pointer;">Clear
+                    All</button>
+                <span onclick="closeSolutions()"
+                    style="cursor:pointer; font-size:1.4rem; color:#888; padding:0 0.3rem;">&times;</span>
+            </div>
+        </div>
+        <div class="solutions-body" id="solutions-list">
+            <div class="empty-solutions" id="empty-msg">No solutions yet. Alerts will appear here as faults are
+                detected.</div>
+        </div>
+    </div>
+
     <div style="display: flex; min-height: 100vh;">
         <nav
             style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
@@ -20,6 +385,12 @@
             <button onclick="location.href='/prediction-details'"
                 style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction
                 Details</button>
+            <div class="nav-btn-wrapper" style="margin-bottom: 1rem;">
+                <button onclick="openSolutions()"
+                    style="width: 100%; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: linear-gradient(135deg, #1a1a3e, #23233b); color: #22d3ee; font-size: 1rem; cursor: pointer; transition: background 0.2s; border: 1px solid #22d3ee33;">📧
+                    Solutions</button>
+                <span class="notification-badge" id="solutions-badge" style="display:none;">0</span>
+            </div>
             {% if session['role'] in ['admin', 'owner'] %}
             <button onclick="location.href='/users'"
                 style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
@@ -102,20 +473,196 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let lastFault = null;
+        let solutionCount = 0;
 
+        // ── Toast Alert System ──
+        function showToast(severity, title, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${severity}`;
+
+            const icon = severity === 'critical' ? '🔴' : severity === 'warning' ? '🟡' : '🟢';
+
+            toast.innerHTML = `
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+                <div class="toast-header">${icon} ${title}</div>
+                <div class="toast-body">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto-remove after 8s
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 8000);
+
+            // Click to open solutions panel
+            toast.addEventListener('click', (e) => {
+                if (e.target.className !== 'toast-close') {
+                    openSolutions();
+                }
+            });
+        }
+
+        // ── Solutions Panel ──
+        function openSolutions() {
+            document.getElementById('solutions-overlay').style.display = 'block';
+            document.getElementById('solutions-panel').style.display = 'flex';
+            // Reset badge
+            const badge = document.getElementById('solutions-badge');
+            badge.style.display = 'none';
+            solutionCount = 0;
+            // Load solutions
+            loadSolutions();
+        }
+
+        function closeSolutions() {
+            document.getElementById('solutions-overlay').style.display = 'none';
+            document.getElementById('solutions-panel').style.display = 'none';
+        }
+
+        async function loadSolutions() {
+            try {
+                const res = await fetch('/api/solutions');
+                const solutions = await res.json();
+                const list = document.getElementById('solutions-list');
+                const emptyMsg = document.getElementById('empty-msg');
+
+                // Clear existing cards (keep empty msg)
+                list.querySelectorAll('.solution-card').forEach(c => c.remove());
+
+                if (!solutions || solutions.length === 0) {
+                    emptyMsg.style.display = 'block';
+                    return;
+                }
+
+                emptyMsg.style.display = 'none';
+
+                solutions.forEach((sol, idx) => {
+                    const card = document.createElement('div');
+                    card.className = `solution-card ${sol.severity}`;
+                    card.innerHTML = `
+                        <span class="card-severity">${sol.severity}</span>
+                        <div class="card-subject">${sol.subject}</div>
+                        <div class="card-time">🕐 ${sol.timestamp} — Fault: ${sol.fault_type} | ${sol.combination}</div>
+                        <div class="card-body">${escapeHtml(sol.body)}</div>
+                        <div class="card-actions">
+                            <button onclick="toggleCardBody(this)">📋 View Details</button>
+                            <button onclick="copyToClipboard(this, ${idx})">📧 Copy Email Draft</button>
+                            <button onclick="openMailto(${idx})">✉️ Open in Email</button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (e) {
+                console.error('Error loading solutions:', e);
+            }
+        }
+
+        function toggleCardBody(btn) {
+            const card = btn.closest('.solution-card');
+            card.classList.toggle('expanded');
+            btn.textContent = card.classList.contains('expanded') ? '🔼 Hide Details' : '📋 View Details';
+        }
+
+        async function copyToClipboard(btn, idx) {
+            try {
+                const res = await fetch('/api/solutions');
+                const solutions = await res.json();
+                if (solutions[idx]) {
+                    const text = `To: maintenance-team@company.com\nSubject: ${solutions[idx].subject}\n\n${solutions[idx].body}`;
+                    await navigator.clipboard.writeText(text);
+                    const orig = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    btn.style.background = '#22c55e';
+                    btn.style.borderColor = '#22c55e';
+                    setTimeout(() => {
+                        btn.textContent = orig;
+                        btn.style.background = '';
+                        btn.style.borderColor = '';
+                    }, 2000);
+                }
+            } catch (e) {
+                console.error('Copy failed:', e);
+            }
+        }
+
+        function openMailto(idx) {
+            fetch('/api/solutions').then(r => r.json()).then(solutions => {
+                if (solutions[idx]) {
+                    const subject = encodeURIComponent(solutions[idx].subject);
+                    const body = encodeURIComponent(solutions[idx].body);
+                    window.open(`mailto:maintenance-team@company.com?subject=${subject}&body=${body}`, '_blank');
+                }
+            });
+        }
+
+        async function clearSolutions() {
+            try {
+                await fetch('/api/solutions/clear', { method: 'POST' });
+                loadSolutions();
+            } catch (e) {
+                console.error('Error clearing:', e);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ── Fault Alert Polling (every 10 seconds) ──
+        async function pollFaultAlert() {
+            try {
+                const res = await fetch('/api/fault-alert');
+                const data = await res.json();
+
+                if (data.alert) {
+                    // Show toast
+                    showToast(
+                        data.severity,
+                        `⚠️ ${data.fault_type}`,
+                        `${data.combination} — Click for solution details`
+                    );
+
+                    // Update badge
+                    solutionCount++;
+                    const badge = document.getElementById('solutions-badge');
+                    badge.textContent = solutionCount > 9 ? '9+' : solutionCount;
+                    badge.style.display = 'flex';
+
+                    // Add chatbot message
+                    const alertMsg = `<strong>⚠️ LSTM Alert: ${data.fault_type}</strong><br/><em>${data.combination}</em><br/><small>Solution drafted — check 📧 Solutions panel</small>`;
+                    addChatMessage(alertMsg);
+
+                    // Shake chatbot button
+                    const btn = document.getElementById('chatbot-toggle');
+                    btn.style.animation = 'shake 0.5s';
+                    setTimeout(() => btn.style.animation = '', 500);
+
+                    // Refresh solutions if panel is open
+                    if (document.getElementById('solutions-panel').style.display === 'flex') {
+                        loadSolutions();
+                    }
+                }
+            } catch (e) {
+                console.error('Fault alert error:', e);
+            }
+        }
+
+        // ── Chatbot ──
         function toggleChat() {
             const win = document.getElementById('chatbot-window');
             const isHidden = win.style.display === 'none';
             win.style.display = isHidden ? 'flex' : 'none';
-
-            // Notification dot logic could go here
         }
 
         function addChatMessage(message) {
             const chatBox = document.getElementById('chat-messages');
             const msgDiv = document.createElement('div');
             msgDiv.style.alignSelf = 'flex-start';
-            msgDiv.style.background = '#22d3ee22'; // Slight blue tint
+            msgDiv.style.background = '#22d3ee22';
             msgDiv.style.border = '1px solid #22d3ee';
             msgDiv.style.padding = '0.8rem';
             msgDiv.style.borderRadius = '0.8rem 0.8rem 0.8rem 0';
@@ -124,21 +671,15 @@
             msgDiv.innerHTML = message;
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Auto-open chat on critical alert if closed
-            // const win = document.getElementById('chatbot-window');
-            // if (win.style.display === 'none') {
-            //    win.style.display = 'flex';
-            // }
         }
 
+        // ── Charts Data Polling (every 2 seconds) ──
         async function fetchDataAndRender() {
             try {
                 const res = await fetch('/api/random-data');
                 const data = await res.json();
                 if (!data || data.length === 0) return;
 
-                // Charts Logic
                 const labels = data.map((row, i) => row['Time'] || `#${i + 1}`);
                 const voltage = data.map(row => row['Voltage (V)']);
                 const current = data.map(row => row['Current (A)']);
@@ -149,37 +690,23 @@
                 const slip = data.map(row => row['Slip']);
                 const powerFactor = data.map(row => row['Power Factor']);
 
-                // Fault Display
                 const lastItem = data[data.length - 1];
                 const currentFault = lastItem['Combination'] || lastItem['Fault_Type'] || 'No issue';
                 document.getElementById('live-issue').textContent = currentFault;
 
-                // Chatbot Logic
+                // Chatbot fault logic (from existing data stream)
                 if (lastItem.explanation && lastItem.fault_detected) {
-                    // Determine if we should alert (simple dedup: only if fault changed or it's a new occurrence after normal)
-                    // For this demo, let's alert if it's different from the last one we saw
                     if (lastItem.fault_detected !== lastFault && lastItem.fault_detected !== 'Normal' && lastItem.fault_detected !== '-') {
                         const alertMsg = `<strong>⚠️ Alert: ${lastItem.fault_detected}</strong><br/>${lastItem.explanation}`;
                         addChatMessage(alertMsg);
                         lastFault = lastItem.fault_detected;
-
-                        // Shake effect on toggle button
-                        const btn = document.getElementById('chatbot-toggle');
-                        btn.style.animation = 'shake 0.5s';
-                        setTimeout(() => btn.style.animation = '', 500);
                     } else if (lastItem.fault_detected === 'Normal' || lastItem.fault_detected === '-') {
-                        lastFault = null; // Reset if system goes back to normal
+                        lastFault = null;
                     }
                 }
 
                 function makeChart(canvasId, label, chartData, color) {
-                    // ... (Existing chart logic) ...
-                    // Note: Recreating charts every time is inefficient but fine for this demo.
-                    // Ideally, we update the existing chart instance.
                     const canvas = document.getElementById(canvasId);
-                    // Clear old chart if exists (Chart.js needs this or reuse)
-                    // Proper way: store chart instances properly. 
-                    // For simplicity in this edit, we destroy the old chart if attached to canvas
                     const existingChart = Chart.getChart(canvasId);
                     if (existingChart) existingChart.destroy();
 
@@ -199,7 +726,7 @@
                         },
                         options: {
                             responsive: true,
-                            animation: false, // Disable animation for smoother streaming
+                            animation: false,
                             plugins: {
                                 legend: { labels: { color: '#fff' } },
                                 title: { display: false }
@@ -224,20 +751,12 @@
             }
         }
 
-        // Add shake animation style
-        const style = document.createElement('style');
-        style.innerHTML = `
-    @keyframes shake {
-        0% { transform: rotate(0deg); }
-        25% { transform: rotate(10deg); }
-        50% { transform: rotate(0deg); }
-        75% { transform: rotate(-10deg); }
-        100% { transform: rotate(0deg); }
-    }`;
-        document.head.appendChild(style);
-
-        setInterval(fetchDataAndRender, 2000); // Poll every 2 seconds
+        // ── Start polling ──
+        setInterval(fetchDataAndRender, 2000);  // Charts every 2s
+        setInterval(pollFaultAlert, 10000);      // Fault alerts every 10s
         fetchDataAndRender();
+        // Initial fault alert after 3s delay
+        setTimeout(pollFaultAlert, 3000);
     </script>
 </body>
 
