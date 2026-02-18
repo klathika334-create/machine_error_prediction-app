@@ -75,42 +75,47 @@ def signup():
         return render_template('signup.html', success='User created successfully! Please log in.')
     return render_template('signup.html')
 
+# Load dataset globally for streaming
+try:
+    df_dataset = pd.read_excel(lstm_data_path)
+    print(f"Dataset loaded successfully: {len(df_dataset)} rows")
+except Exception as e:
+    print(f"Error loading dataset: {e}")
+    df_dataset = pd.DataFrame()
+
+CURRENT_INDEX = 0
+
 @app.route('/api/random-data')
 def random_data():
+    global CURRENT_INDEX
     if 'username' not in session:
         return redirect(url_for('login'))
     try:
-        df = pd.read_excel(lstm_data_path)
-        metrics = [
-            'Voltage (V)', 'Current (A)', 'Power (kW)', 'Temperature (°C)',
-            'Vibration (mm/s)', 'Speed (RPM)', 'Slip', 'Power Factor'
-        ]
-        # Check columns
-        missing = [col for col in metrics if col not in df.columns]
-        if missing:
-            return jsonify({'error': f'Missing columns: {missing}'}), 500
-        # Get 12 random samples
-        sample = df.sample(n=12, random_state=None).reset_index(drop=True)
-        chart_data = {metric: sample[metric].tolist() for metric in metrics}
-        # Use the last sample for prediction
-        last_sample = sample.iloc[[-1]][metrics].values.reshape(1, -1)
-        # Reshape for LSTM if needed
-        try:
-            # If LSTM expects 3D input, expand dims
-            if len(lstm_predictor.features.shape) == 3:
-                last_sample_lstm = last_sample.reshape((1, 1, len(metrics)))
-            else:
-                last_sample_lstm = last_sample
-            pred = lstm_predictor.predict(last_sample_lstm)
-            fault_type, combination = lstm_predictor.get_fault_details(pred)
-            prediction = {
-                'prediction': str(pred[0][0]) if hasattr(pred[0], '__getitem__') else str(pred[0]),
-                'fault_type': fault_type,
-                'combination': combination
-            }
-        except Exception as e:
-            prediction = {'prediction': 'N/A', 'fault_type': 'N/A', 'combination': 'N/A', 'error': str(e)}
-        return jsonify({'chart_data': chart_data, 'prediction': prediction})
+        if df_dataset.empty:
+            return jsonify({'error': 'Dataset not loaded'}), 500
+
+        # Get sequential chunk
+        chunk_size = 20
+        start_idx = CURRENT_INDEX
+        end_idx = start_idx + chunk_size
+        
+        # Handle wrapping around
+        if end_idx >= len(df_dataset):
+            subset = df_dataset.iloc[start_idx:]
+            remaining = chunk_size - len(subset)
+            subset_start = df_dataset.iloc[:remaining]
+            data_chunk = pd.concat([subset, subset_start])
+            CURRENT_INDEX = remaining
+        else:
+            data_chunk = df_dataset.iloc[start_idx:end_idx]
+            CURRENT_INDEX = end_idx
+
+        # Convert to list of dicts for JSON response
+        # Ensure we replace NaN with None or handle them, ensuring valid JSON
+        data_list = data_chunk.replace({np.nan: None}).to_dict(orient='records')
+        
+        return jsonify(data_list)
+        
     except Exception as e:
         import traceback
         print('Error in /api/random-data:', e)
