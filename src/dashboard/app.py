@@ -14,6 +14,7 @@ import pandas as pd
 import numpy as np
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 load_dotenv()
 
 
@@ -49,6 +50,13 @@ def login():
         if user and check_password_hash(user['password'], password):
             session['username'] = username
             session['role'] = user.get('role', 'user')
+            
+            # Track login stats
+            users.update_one({'_id': user['_id']}, {
+                '$inc': {'login_count': 1},
+                '$set': {'last_login': datetime.now()}
+            })
+            
             return redirect(url_for('home'))
         else:
             return render_template('login.html', error='Invalid credentials')
@@ -58,10 +66,25 @@ def login():
 def profile():
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('profile.html', username=session.get('username'), role=session.get('role', 'user'))
+    # Fetch fresh user data for stats
+    user = mongo.db.users.find_one({'username': session['username']})
+    
+    return render_template('profile.html', 
+        username=session.get('username'), 
+        role=session.get('role', 'user'),
+        login_count=user.get('login_count', 0),
+        last_login=user.get('last_login', 'Never'),
+        last_logout=user.get('last_logout', 'Never')
+    )
 
 @app.route('/logout')
 def logout():
+    # Track logout time
+    if 'username' in session:
+        mongo.db.users.update_one({'username': session['username']}, {
+            '$set': {'last_logout': datetime.now()}
+        })
+        
     session.pop('username', None)
     session.pop('role', None)
     return redirect(url_for('login'))
