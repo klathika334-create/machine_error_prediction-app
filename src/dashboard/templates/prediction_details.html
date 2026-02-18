@@ -1,33 +1,46 @@
 <body style="margin:0; padding:0; background: #181824; color: #fff; font-family: 'Segoe UI',sans-serif;">
     <div style="display: flex; min-height: 100vh;">
-        <nav style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
+        <nav
+            style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
             <div style="margin-bottom: 2rem;">
                 <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;">👤 {{ username }}</div>
             </div>
-            <button onclick="location.href='/'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Charts</button>
-            <button onclick="location.href='/information'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Information</button>
-            <button onclick="location.href='/prediction-details'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction Details</button>
+            <button onclick="location.href='/'"
+                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Charts</button>
+            <button onclick="location.href='/prediction-details'"
+                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction
+                Details</button>
             {% if session['role'] in ['admin', 'owner'] %}
-            <button onclick="location.href='/users'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
+            <button onclick="location.href='/users'"
+                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
             {% endif %}
-            <button onclick="location.href='/logout'" style="width: 100%; margin-top: auto; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #ef4444; color: #fff; font-size: 1rem; cursor: pointer;">Logout</button>
+            <button onclick="location.href='/logout'"
+                style="width: 100%; margin-top: auto; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #ef4444; color: #fff; font-size: 1rem; cursor: pointer;">Logout</button>
         </nav>
         <main style="flex:1; padding: 2rem;">
             <h1 style="margin-top:0;">Prediction Details</h1>
             <div style="margin-bottom: 2rem;">
-                <button onclick="showSection('anomaly')" style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Anomaly Detection</button>
-                <button onclick="showSection('lstm')" style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">LSTM Prediction</button>
-                <button onclick="showSection('pattern')" style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Pattern Deviation</button>
-                <button onclick="showSection('timeseries')" style="padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Time Series</button>
+                <button onclick="showSection('anomaly')"
+                    style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Anomaly
+                    Detection</button>
+                <button onclick="showSection('lstm')"
+                    style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">LSTM
+                    Prediction</button>
+                <button onclick="showSection('pattern')"
+                    style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Pattern
+                    Deviation</button>
+                <button onclick="showSection('timeseries')"
+                    style="padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Time
+                    Series</button>
             </div>
             <div id="anomaly" class="pred-section" style="display:block;">
                 <h2>Anomaly Detection Results</h2>
                 <div style="background:rgba(40,40,60,0.85); border-radius:1rem; padding:1.2rem; margin-bottom:1.5rem;">
                     {% if anomaly %}
-                        <b>Status:</b> {{ anomaly.status if anomaly.status is defined else anomaly }}<br>
-                        <b>Sample Output:</b> {{ anomaly.output if anomaly.output is defined else '' }}
+                    <b>Status:</b> {{ anomaly.status if anomaly.status is defined else anomaly }}<br>
+                    <b>Sample Output:</b> {{ anomaly.output if anomaly.output is defined else '' }}
                     {% else %}
-                        <b>Note:</b> Please add <code>data/simulated_data.csv</code> for real anomaly detection results.
+                    <b>Note:</b> Please add <code>data/simulated_data.csv</code> for real anomaly detection results.
                     {% endif %}
                 </div>
             </div>
@@ -42,7 +55,8 @@
             <div id="pattern" class="pred-section" style="display:none;">
                 <h2>Pattern Deviation Results</h2>
                 <div style="background:rgba(40,40,60,0.85); border-radius:1rem; padding:1.2rem; margin-bottom:1.5rem;">
-                    <b>Sample Deviation Score:</b> {{ pattern.deviation if pattern and pattern.deviation is defined else pattern }}
+                    <b>Sample Deviation Score:</b> {{ pattern.deviation if pattern and pattern.deviation is defined else
+                    pattern }}
                 </div>
             </div>
             <div id="timeseries" class="pred-section" style="display:none;">

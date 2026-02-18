@@ -21,7 +21,12 @@ try:
             if isinstance(data, list):
                 print(f"Length: {len(data)}")
                 if len(data) > 0:
-                    print(f"First item keys: {list(data[0].keys())}")
+                    last_item = data[-1]
+                    print(f"Last item keys: {list(last_item.keys())}")
+                    if 'explanation' in last_item:
+                        print(f"Explanation found: {last_item['explanation']}")
+                    if 'fault_detected' in last_item:
+                        print(f"Fault detected: {last_item['fault_detected']}")
                 
                 # Check sequential data
                 response2 = client.get('/api/random-data')

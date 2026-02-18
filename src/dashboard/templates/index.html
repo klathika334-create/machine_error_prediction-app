@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,37 +10,89 @@
 
 <body style="margin:0; padding:0; background: #181824; color: #fff; font-family: 'Segoe UI',sans-serif;">
     <div style="display: flex; min-height: 100vh;">
-        <nav style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
+        <nav
+            style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
             <div style="margin-bottom: 2rem;">
                 <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;">👤 {{ username }}</div>
             </div>
-            <button onclick="location.href='/'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Charts</button>
-            <button onclick="location.href='/information'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Information</button>
-            <button onclick="location.href='/prediction-details'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction Details</button>
+            <button onclick="location.href='/'"
+                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Charts</button>
+            <button onclick="location.href='/prediction-details'"
+                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction
+                Details</button>
             {% if session['role'] in ['admin', 'owner'] %}
-            <button onclick="location.href='/users'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
+            <button onclick="location.href='/users'"
+                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
             {% endif %}
-            <button onclick="location.href='/logout'" style="width: 100%; margin-top: auto; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #ef4444; color: #fff; font-size: 1rem; cursor: pointer;">Logout</button>
+            <button onclick="location.href='/logout'"
+                style="width: 100%; margin-top: auto; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #ef4444; color: #fff; font-size: 1rem; cursor: pointer;">Logout</button>
         </nav>
-        <main style="flex:1; padding: 2rem;">
+        <main style="flex:1; padding: 2rem; position: relative;">
             <h1 style="margin-top:0;">Machine Error Prediction Dashboard</h1>
             <p>Welcome to the real-time monitoring and prediction dashboard.</p>
             <div id="dashboard-content">
-                <div class="charts-wrapper" style="display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: flex-start; align-items: flex-start; max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Voltage (V)</h3><canvas id="voltageChart" height="120" width="220"></canvas></div>
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Current (A)</h3><canvas id="currentChart" height="120" width="220"></canvas></div>
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Power (kW)</h3><canvas id="powerChart" height="120" width="220"></canvas></div>
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Temperature (°C)</h3><canvas id="temperatureChart" height="120" width="220"></canvas></div>
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Vibration (mm/s)</h3><canvas id="vibrationChart" height="120" width="220"></canvas></div>
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Speed (RPM)</h3><canvas id="speedChart" height="120" width="220"></canvas></div>
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Slip</h3><canvas id="slipChart" height="120" width="220"></canvas></div>
-                    <div class="chart-container" style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);"><h3>Power Factor</h3><canvas id="powerFactorChart" height="120" width="220"></canvas></div>
+                <div class="charts-wrapper"
+                    style="display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: flex-start; align-items: flex-start; max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Voltage (V)</h3><canvas id="voltageChart" height="120" width="220"></canvas>
+                    </div>
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Current (A)</h3><canvas id="currentChart" height="120" width="220"></canvas>
+                    </div>
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Power (kW)</h3><canvas id="powerChart" height="120" width="220"></canvas>
+                    </div>
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Temperature (°C)</h3><canvas id="temperatureChart" height="120" width="220"></canvas>
+                    </div>
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Vibration (mm/s)</h3><canvas id="vibrationChart" height="120" width="220"></canvas>
+                    </div>
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Speed (RPM)</h3><canvas id="speedChart" height="120" width="220"></canvas>
+                    </div>
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Slip</h3><canvas id="slipChart" height="120" width="220"></canvas>
+                    </div>
+                    <div class="chart-container"
+                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
+                        <h3>Power Factor</h3><canvas id="powerFactorChart" height="120" width="220"></canvas>
+                    </div>
                 </div>
                 <div style="margin-top: 2rem; text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
-                        <span style="display: inline-block; background: #ef4444; color: #fff; border-radius: 50%; width: 2.5rem; height: 2.5rem; line-height: 2.5rem; font-size: 2rem; box-shadow: 0 0 12px #ef4444aa;">&#9888;</span>
+                        <span
+                            style="display: inline-block; background: #ef4444; color: #fff; border-radius: 50%; width: 2.5rem; height: 2.5rem; line-height: 2.5rem; font-size: 2rem; box-shadow: 0 0 12px #ef4444aa;">&#9888;</span>
                         <h2 style="margin: 0; color: #fff;">Fault:</h2>
                         <div id="live-issue" style="font-size: 1.5rem; color: #ef4444; font-weight: bold;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chatbot Interface -->
+            <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+                <button id="chatbot-toggle" onclick="toggleChat()"
+                    style="width: 60px; height: 60px; border-radius: 30px; background: #22d3ee; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; font-size: 24px;">🤖</button>
+                <div id="chatbot-window"
+                    style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; height: 500px; background: rgba(30,30,40,0.95); border-radius: 1rem; border: 1px solid #444; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5);">
+                    <div
+                        style="padding: 1rem; background: #23233b; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: #22d3ee;">System Assistant</span>
+                        <span onclick="toggleChat()" style="cursor: pointer; font-size: 1.2rem;">&times;</span>
+                    </div>
+                    <div id="chat-messages"
+                        style="flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <div
+                            style="align-self: flex-start; background: #333; padding: 0.8rem; border-radius: 0.8rem 0.8rem 0.8rem 0; max-width: 80%;">
+                            Hello! I am your AI assistant. I will notify you of any critical system faults detected.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -48,58 +101,144 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    async function fetchDataAndRender() {
-        const res = await fetch('/api/random-data');
-        const data = await res.json();
-        if (!data || data.length === 0) return;
-        const labels = data.map((row, i) => row['Time'] || `#${i+1}`);
-        const voltage = data.map(row => row['Voltage (V)']);
-        const current = data.map(row => row['Current (A)']);
-        const power = data.map(row => row['Power (kW)']);
-        const temp = data.map(row => row['Temperature (°C)']);
-        const vibration = data.map(row => row['Vibration (mm/s)']);
-        const speed = data.map(row => row['Speed (RPM)']);
-        const slip = data.map(row => row['Slip']);
-        const powerFactor = data.map(row => row['Power Factor']);
-        document.getElementById('live-issue').textContent = data[data.length-1]['Combination'] || 'No issue';
-        function makeChart(canvasId, label, chartData, color) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: label,
-                        data: chartData,
-                        borderColor: color,
-                        backgroundColor: color + '22',
-                        tension: 0.4,
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { labels: { color: '#fff' } },
-                        title: { display: false }
-                    },
-                    scales: {
-                        x: { ticks: { color: '#a3a3a3' } },
-                        y: { ticks: { color: '#a3a3a3' } }
+        let lastFault = null;
+
+        function toggleChat() {
+            const win = document.getElementById('chatbot-window');
+            const isHidden = win.style.display === 'none';
+            win.style.display = isHidden ? 'flex' : 'none';
+
+            // Notification dot logic could go here
+        }
+
+        function addChatMessage(message) {
+            const chatBox = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.style.alignSelf = 'flex-start';
+            msgDiv.style.background = '#22d3ee22'; // Slight blue tint
+            msgDiv.style.border = '1px solid #22d3ee';
+            msgDiv.style.padding = '0.8rem';
+            msgDiv.style.borderRadius = '0.8rem 0.8rem 0.8rem 0';
+            msgDiv.style.maxWidth = '85%';
+            msgDiv.style.marginBottom = '0.5rem';
+            msgDiv.innerHTML = message;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Auto-open chat on critical alert if closed
+            // const win = document.getElementById('chatbot-window');
+            // if (win.style.display === 'none') {
+            //    win.style.display = 'flex';
+            // }
+        }
+
+        async function fetchDataAndRender() {
+            try {
+                const res = await fetch('/api/random-data');
+                const data = await res.json();
+                if (!data || data.length === 0) return;
+
+                // Charts Logic
+                const labels = data.map((row, i) => row['Time'] || `#${i + 1}`);
+                const voltage = data.map(row => row['Voltage (V)']);
+                const current = data.map(row => row['Current (A)']);
+                const power = data.map(row => row['Power (kW)']);
+                const temp = data.map(row => row['Temperature (°C)']);
+                const vibration = data.map(row => row['Vibration (mm/s)']);
+                const speed = data.map(row => row['Speed (RPM)']);
+                const slip = data.map(row => row['Slip']);
+                const powerFactor = data.map(row => row['Power Factor']);
+
+                // Fault Display
+                const lastItem = data[data.length - 1];
+                const currentFault = lastItem['Combination'] || lastItem['Fault_Type'] || 'No issue';
+                document.getElementById('live-issue').textContent = currentFault;
+
+                // Chatbot Logic
+                if (lastItem.explanation && lastItem.fault_detected) {
+                    // Determine if we should alert (simple dedup: only if fault changed or it's a new occurrence after normal)
+                    // For this demo, let's alert if it's different from the last one we saw
+                    if (lastItem.fault_detected !== lastFault && lastItem.fault_detected !== 'Normal' && lastItem.fault_detected !== '-') {
+                        const alertMsg = `<strong>⚠️ Alert: ${lastItem.fault_detected}</strong><br/>${lastItem.explanation}`;
+                        addChatMessage(alertMsg);
+                        lastFault = lastItem.fault_detected;
+
+                        // Shake effect on toggle button
+                        const btn = document.getElementById('chatbot-toggle');
+                        btn.style.animation = 'shake 0.5s';
+                        setTimeout(() => btn.style.animation = '', 500);
+                    } else if (lastItem.fault_detected === 'Normal' || lastItem.fault_detected === '-') {
+                        lastFault = null; // Reset if system goes back to normal
                     }
                 }
-            });
+
+                function makeChart(canvasId, label, chartData, color) {
+                    // ... (Existing chart logic) ...
+                    // Note: Recreating charts every time is inefficient but fine for this demo.
+                    // Ideally, we update the existing chart instance.
+                    const canvas = document.getElementById(canvasId);
+                    // Clear old chart if exists (Chart.js needs this or reuse)
+                    // Proper way: store chart instances properly. 
+                    // For simplicity in this edit, we destroy the old chart if attached to canvas
+                    const existingChart = Chart.getChart(canvasId);
+                    if (existingChart) existingChart.destroy();
+
+                    const ctx = canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: label,
+                                data: chartData,
+                                borderColor: color,
+                                backgroundColor: color + '22',
+                                tension: 0.4,
+                                fill: true,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            animation: false, // Disable animation for smoother streaming
+                            plugins: {
+                                legend: { labels: { color: '#fff' } },
+                                title: { display: false }
+                            },
+                            scales: {
+                                x: { ticks: { color: '#a3a3a3' } },
+                                y: { ticks: { color: '#a3a3a3' } }
+                            }
+                        }
+                    });
+                }
+                makeChart('voltageChart', 'Voltage (V)', voltage, 'rgba(255,99,132,1)');
+                makeChart('currentChart', 'Current (A)', current, 'rgba(54,162,235,1)');
+                makeChart('powerChart', 'Power (kW)', power, 'rgba(255,206,86,1)');
+                makeChart('temperatureChart', 'Temperature (°C)', temp, 'rgba(75,192,192,1)');
+                makeChart('vibrationChart', 'Vibration (mm/s)', vibration, 'rgba(153,102,255,1)');
+                makeChart('speedChart', 'Speed (RPM)', speed, 'rgba(255,159,64,1)');
+                makeChart('slipChart', 'Slip', slip, 'rgba(255,99,71,1)');
+                makeChart('powerFactorChart', 'Power Factor', powerFactor, 'rgba(100,255,218,1)');
+            } catch (e) {
+                console.error("Error fetching data:", e);
+            }
         }
-        makeChart('voltageChart', 'Voltage (V)', voltage, 'rgba(255,99,132,1)');
-        makeChart('currentChart', 'Current (A)', current, 'rgba(54,162,235,1)');
-        makeChart('powerChart', 'Power (kW)', power, 'rgba(255,206,86,1)');
-        makeChart('temperatureChart', 'Temperature (°C)', temp, 'rgba(75,192,192,1)');
-        makeChart('vibrationChart', 'Vibration (mm/s)', vibration, 'rgba(153,102,255,1)');
-        makeChart('speedChart', 'Speed (RPM)', speed, 'rgba(255,159,64,1)');
-        makeChart('slipChart', 'Slip', slip, 'rgba(255,99,71,1)');
-        makeChart('powerFactorChart', 'Power Factor', powerFactor, 'rgba(100,255,218,1)');
-    }
-    fetchDataAndRender();
+
+        // Add shake animation style
+        const style = document.createElement('style');
+        style.innerHTML = `
+    @keyframes shake {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(10deg); }
+        50% { transform: rotate(0deg); }
+        75% { transform: rotate(-10deg); }
+        100% { transform: rotate(0deg); }
+    }`;
+        document.head.appendChild(style);
+
+        setInterval(fetchDataAndRender, 2000); // Poll every 2 seconds
+        fetchDataAndRender();
     </script>
 </body>
+
 </html>
