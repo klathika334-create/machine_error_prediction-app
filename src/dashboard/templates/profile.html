@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - machine Error Prediction</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <h1>User Profile</h1>
+    <form>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 4rem;">👤</div>
+        </div>
+
+        <label>Username</label>
+        <input type="text" value="{{ username }}" readonly disabled style="cursor: default; opacity: 0.7;">
+
+        <label>Designation / Role</label>
+        <input type="text" value="{{ role }}" readonly disabled
+            style="cursor: default; opacity: 0.7; text-transform: capitalize;">
+
+        <div style="margin-top: 30px; display: flex; justify-content: space-between; width: 100%;">
+            <a href="/" style="color: #61dafb; text-decoration: none;">← Back to Dashboard</a>
+            <a href="/logout" style="color: #ff5370; text-decoration: none;">Logout</a>
+        </div>
+    </form>
+</body>
+
+</html>

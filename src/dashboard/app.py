@@ -54,6 +54,12 @@ def login():
             return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
 
+@app.route('/profile')
+def profile():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('profile.html', username=session.get('username'), role=session.get('role', 'user'))
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
@@ -254,16 +260,19 @@ MAX_SOLUTIONS = 15
 # ── Rate limiting: max 6 alerts per minute ──
 import time as _time
 alert_timestamps = []  # timestamps of recent alerts
-MAX_ALERTS_PER_MINUTE = 6
+MAX_ALERTS_PER_MINUTE = 5
 
 # ── Email configuration (saves to Gmail Drafts via IMAP) ──
 import imaplib
+import uuid
+import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_email_draft(solution):
     """Save a solution as a draft in Gmail's Drafts folder via IMAP.
-    The draft has no 'To' field so the user can add recipients later."""
+    The draft has no 'To' field so the user can add recipients later.
+    Returns the direct link to the draft if successful, False otherwise."""
     email_user = os.environ.get('EMAIL_ADDRESS', '')
     email_pass = os.environ.get('EMAIL_APP_PASSWORD', '')
     imap_server = os.environ.get('EMAIL_IMAP_SERVER', 'imap.gmail.com')
@@ -274,21 +283,60 @@ def send_email_draft(solution):
         return False
     
     try:
+        # Generate a unique ID to find this exact message later
+        draft_uuid = str(uuid.uuid4())
+        
         # Build the email (no To: field — user adds recipients later)
         msg = MIMEMultipart()
         msg['From'] = email_user
         msg['Subject'] = solution['subject']
+        msg['X-Auris-Draft-ID'] = draft_uuid  # Custom header for search
         msg.attach(MIMEText(solution['body'], 'plain'))
         
         # Connect via IMAP and save to Drafts
         imap = imaplib.IMAP4_SSL(imap_server, imap_port)
         imap.login(email_user, email_pass)
-        # Gmail uses '[Gmail]/Drafts' as the drafts folder
+        
+        # Select Drafts folder (required for append? Standard IMAP append takes mailbox name, 
+        # but we need to select it for searching anyway)
+        # Gmail uses '[Gmail]/Drafts'
         imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(imaplib.time.time()), msg.as_bytes())
+        
+        # Now find the message to get its Thread ID (so we can link to it)
+        imap.select('[Gmail]/Drafts')
+        # Search by our unique header
+        typ, data = imap.search(None, f'(HEADER X-Auris-Draft-ID "{draft_uuid}")')
+        
+        draft_link = None
+        if typ == 'OK' and data[0]:
+            # Get the last message ID found (should be unique anyway)
+            msg_id = data[0].split()[-1]
+            # Fetch X-GM-THRID (Gmail extension for Thread ID)
+            typ, msg_data = imap.fetch(msg_id, '(X-GM-THRID)')
+            if typ == 'OK':
+                # Response format: b'seq (X-GM-THRID 123456789...)'
+                # Parse to extract ID
+                raw_resp = msg_data[0]
+                if isinstance(raw_resp, tuple):
+                    raw_resp = raw_resp[0] # The string part
+                
+                resp_str = raw_resp.decode('utf-8')
+                match = re.search(r'X-GM-THRID\s+(\d+)', resp_str)
+                if match:
+                    thread_id = int(match.group(1))
+                    # Gmail URL uses hex version of thread ID
+                    hex_thread_id = hex(thread_id)[2:] # remove 0x prefix
+                    draft_link = f'https://mail.google.com/mail/u/0/#drafts/{hex_thread_id}'
+        
         imap.logout()
         
-        print(f'[EMAIL] Draft saved: {solution["subject"][:60]}...')
-        return True
+        if draft_link:
+            print(f'[EMAIL] Draft saved & linked: {solution["subject"][:60]}...')
+            return draft_link
+        else:
+            print(f'[EMAIL] Draft saved (link not generated): {solution["subject"][:60]}...')
+            return True # Fallback to True if link generation fails but save succeeded
+
     except Exception as e:
         print(f'[EMAIL] Failed to save draft: {e}')
         return False
@@ -350,8 +398,9 @@ def fault_alert():
                 solutions_history.pop()
             
             # Auto-send email draft
-            email_sent = send_email_draft(solution)
-            solution['email_sent'] = email_sent
+            email_link = send_email_draft(solution)
+            solution['email_link'] = email_link if isinstance(email_link, str) else None
+            solution['email_sent'] = bool(email_link)
             
             return jsonify({
                 'alert': True,
@@ -362,7 +411,8 @@ def fault_alert():
                 'body': solution['body'],
                 'timestamp': solution['timestamp'],
                 'prediction_raw': float(prediction[0][0]),
-                'email_sent': email_sent,
+                'email_sent': bool(email_link),
+                'email_link': solution['email_link'],
                 'alerts_remaining': MAX_ALERTS_PER_MINUTE - len(alert_timestamps)
             })
         else:
