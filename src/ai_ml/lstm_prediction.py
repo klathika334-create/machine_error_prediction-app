@@ -3,6 +3,7 @@
 
 import pandas as pd
 import numpy as np
+import os
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
@@ -11,7 +12,8 @@ class LSTMPrediction:
     def __init__(self, file_path=None):
         # Use absolute path if not provided
         if file_path is None:
-            self.file_path = r'D:/Machine error prediction/data/Industrial_MultiClass_Dataset_With_Slip.xlsx'
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.file_path = os.path.join(os.path.dirname(base_dir), 'data', 'Industrial_MultiClass_Dataset_With_Slip.xlsx')
         else:
             self.file_path = file_path
         self.scaler = MinMaxScaler()

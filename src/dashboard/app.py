@@ -25,7 +25,8 @@ app.secret_key = 'your_secret_key'  # Replace with a secure key
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/machine_error_db'
 mongo = PyMongo(app)
 
-lstm_data_path = r'D:/Machine error prediction/data/Industrial_MultiClass_Dataset_With_Slip.xlsx'
+base_dir = os.path.dirname(os.path.abspath(__file__))
+lstm_data_path = os.path.join(os.path.dirname(os.path.dirname(base_dir)), 'data', 'Industrial_MultiClass_Dataset_With_Slip.xlsx')
 lstm_predictor = LSTMPrediction(file_path=lstm_data_path)
 lstm_predictor.load_and_preprocess_data()
 lstm_predictor.build_model()

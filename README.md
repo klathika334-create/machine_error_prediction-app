@@ -64,3 +64,19 @@ Machine error prediction/
 └── README.md                 # Project documentation
 
 ```
+
+## Running Locally (No Docker)
+
+1. **MongoDB Setup**:
+   - Download MongoDB binaries from the official site.
+   - Extract them and run:
+     ```bash
+     mkdir -p mongodb_data
+     ./mongodb-linux-x86_64-ubuntu2204-7.0.5/bin/mongod --dbpath mongodb_data --port 27017 --bind_ip 127.0.0.1 --fork --logpath mongodb_data/mongod.log
+     ```
+
+2. **Run Application**:
+   ```bash
+   source venv/bin/activate
+   python src/dashboard/app.py
+   ```

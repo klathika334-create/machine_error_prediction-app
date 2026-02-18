@@ -10,3 +10,4 @@ matplotlib
 seaborn
 joblib
 flask-cors
+openpyxl==3.1.5
