@@ -541,8 +541,11 @@
                 solutions.forEach((sol, idx) => {
                     const card = document.createElement('div');
                     card.className = `solution-card ${sol.severity}`;
+                    const emailBadge = sol.email_sent
+                        ? '<span style="color:#22c55e; font-size:0.75rem;">📧 Emailed</span>'
+                        : '<span style="color:#888; font-size:0.75rem;">📋 Local only</span>';
                     card.innerHTML = `
-                        <span class="card-severity">${sol.severity}</span>
+                        <span class="card-severity">${sol.severity}</span> ${emailBadge}
                         <div class="card-subject">${sol.subject}</div>
                         <div class="card-time">🕐 ${sol.timestamp} — Fault: ${sol.fault_type} | ${sol.combination}</div>
                         <div class="card-body">${escapeHtml(sol.body)}</div>
@@ -618,12 +621,22 @@
                 const res = await fetch('/api/fault-alert');
                 const data = await res.json();
 
+                // Handle rate limiting
+                if (data.rate_limited) {
+                    console.log(`Rate limited: ${data.message}`);
+                    return; // Skip silently
+                }
+
                 if (data.alert) {
+                    // Email status for toast
+                    const emailInfo = data.email_sent ? '📧 Email draft sent' : '📋 Draft saved locally';
+                    const remaining = data.alerts_remaining !== undefined ? ` | ${data.alerts_remaining} alerts left/min` : '';
+
                     // Show toast
                     showToast(
                         data.severity,
                         `⚠️ ${data.fault_type}`,
-                        `${data.combination} — Click for solution details`
+                        `${data.combination}\n${emailInfo}${remaining}`
                     );
 
                     // Update badge
@@ -633,7 +646,8 @@
                     badge.style.display = 'flex';
 
                     // Add chatbot message
-                    const alertMsg = `<strong>⚠️ LSTM Alert: ${data.fault_type}</strong><br/><em>${data.combination}</em><br/><small>Solution drafted — check 📧 Solutions panel</small>`;
+                    const emailNote = data.email_sent ? '📧 Email draft sent to your inbox' : '📋 Solution saved locally';
+                    const alertMsg = `<strong>⚠️ LSTM Alert: ${data.fault_type}</strong><br/><em>${data.combination}</em><br/><small>${emailNote} — check 📧 Solutions panel</small>`;
                     addChatMessage(alertMsg);
 
                     // Shake chatbot button

@@ -13,6 +13,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import pandas as pd
 import numpy as np
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # For local execution, use relative import
@@ -247,7 +249,46 @@ def prediction_details():
 
 # ── In-memory solutions history ──
 solutions_history = []
-MAX_SOLUTIONS = 50
+MAX_SOLUTIONS = 15
+
+# ── Rate limiting: max 6 alerts per minute ──
+import time as _time
+alert_timestamps = []  # timestamps of recent alerts
+MAX_ALERTS_PER_MINUTE = 6
+
+# ── Email configuration ──
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+def send_email_draft(solution):
+    """Send a solution as an email draft via SMTP."""
+    email_user = os.environ.get('EMAIL_ADDRESS', '')
+    email_pass = os.environ.get('EMAIL_APP_PASSWORD', '')
+    email_smtp = os.environ.get('EMAIL_SMTP_SERVER', 'smtp.gmail.com')
+    email_port = int(os.environ.get('EMAIL_SMTP_PORT', '587'))
+    
+    if not email_user or not email_pass:
+        print('[EMAIL] Skipping — EMAIL_ADDRESS or EMAIL_APP_PASSWORD not set in .env')
+        return False
+    
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = email_user
+        msg['To'] = email_user  # send to self as draft
+        msg['Subject'] = solution['subject']
+        msg.attach(MIMEText(solution['body'], 'plain'))
+        
+        with smtplib.SMTP(email_smtp, email_port) as server:
+            server.starttls()
+            server.login(email_user, email_pass)
+            server.send_message(msg)
+        
+        print(f'[EMAIL] Draft sent: {solution["subject"][:60]}...')
+        return True
+    except Exception as e:
+        print(f'[EMAIL] Failed to send: {e}')
+        return False
 
 @app.route('/api/fault-alert')
 def fault_alert():
@@ -258,6 +299,20 @@ def fault_alert():
     try:
         if df_dataset.empty or lstm_predictor.model is None:
             return jsonify({'alert': False, 'message': 'Model not ready'}), 200
+        
+        # ── Rate limiting: max 6 alerts per minute ──
+        now = _time.time()
+        # Remove timestamps older than 60 seconds
+        while alert_timestamps and alert_timestamps[0] < now - 60:
+            alert_timestamps.pop(0)
+        
+        if len(alert_timestamps) >= MAX_ALERTS_PER_MINUTE:
+            return jsonify({
+                'alert': False,
+                'rate_limited': True,
+                'message': f'Rate limit reached ({MAX_ALERTS_PER_MINUTE}/min). Next alert available in {int(60 - (now - alert_timestamps[0]))}s',
+                'timestamp': __import__('datetime').datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
         
         # Sample a random row
         sample = df_dataset.sample(1)
@@ -283,10 +338,17 @@ def fault_alert():
         if is_fault:
             solution = generate_solution(display_fault, display_combo)
             
-            # Store in history (cap at MAX_SOLUTIONS)
+            # Record this alert timestamp
+            alert_timestamps.append(now)
+            
+            # Store in history (cap at MAX_SOLUTIONS = 15)
             solutions_history.insert(0, solution)
-            if len(solutions_history) > MAX_SOLUTIONS:
+            while len(solutions_history) > MAX_SOLUTIONS:
                 solutions_history.pop()
+            
+            # Auto-send email draft
+            email_sent = send_email_draft(solution)
+            solution['email_sent'] = email_sent
             
             return jsonify({
                 'alert': True,
@@ -296,7 +358,9 @@ def fault_alert():
                 'subject': solution['subject'],
                 'body': solution['body'],
                 'timestamp': solution['timestamp'],
-                'prediction_raw': float(prediction[0][0])
+                'prediction_raw': float(prediction[0][0]),
+                'email_sent': email_sent,
+                'alerts_remaining': MAX_ALERTS_PER_MINUTE - len(alert_timestamps)
             })
         else:
             return jsonify({
