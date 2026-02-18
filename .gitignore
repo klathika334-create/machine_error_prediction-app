@@ -5,8 +5,13 @@ __pycache__/
 venv/
 .env
 
-# MongoDB local data
+# MongoDB local data & binaries
 mongodb_data/
+mongodb-linux-*/
+
+# Model files
+*.h5
+*.keras
 
 # OS
 .DS_Store
