@@ -1,0 +1,68 @@
+<body style="margin:0; padding:0; background: #181824; color: #fff; font-family: 'Segoe UI',sans-serif;">
+    <div style="display: flex; min-height: 100vh;">
+        <nav style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
+            <div style="margin-bottom: 2rem;">
+                <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;">👤 {{ username }}</div>
+            </div>
+            <button onclick="location.href='/'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Charts</button>
+            <button onclick="location.href='/information'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Information</button>
+            <button onclick="location.href='/prediction-details'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction Details</button>
+            {% if session['role'] in ['admin', 'owner'] %}
+            <button onclick="location.href='/users'" style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
+            {% endif %}
+            <button onclick="location.href='/logout'" style="width: 100%; margin-top: auto; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #ef4444; color: #fff; font-size: 1rem; cursor: pointer;">Logout</button>
+        </nav>
+        <main style="flex:1; padding: 2rem;">
+<div class="info-page" style="max-width: 900px; margin: 2rem auto; background: rgba(30,30,40,0.8); border-radius: 1rem; padding: 2rem; color: #fff; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);">
+    <h2>Project Information</h2>
+    <h3>Overview</h3>
+    <p>This project is a Machine Error Prediction Dashboard that leverages AI fundamentals and LSTM (Long Short-Term Memory) neural networks to predict and visualize machine faults in real time. It features a modular, layered architecture for scalability and maintainability.</p>
+    <h3>Architecture</h3>
+    <ul>
+        <li><b>Backend:</b> Python (Flask), pandas, flask-pymongo, bcrypt, flask-jwt-extended</li>
+        <li><b>Frontend:</b> HTML, CSS (glassmorphism/dark theme), JavaScript, Chart.js</li>
+        <li><b>Database:</b> MongoDB (user management), Excel (analytics data)</li>
+        <li><b>AI/ML:</b> LSTM for time-series prediction, modular AI/ML pipeline</li>
+    </ul>
+    <h3>Key Features</h3>
+    <ul>
+        <li>Secure authentication (signup/login) with hashed passwords and JWT</li>
+        <li>Role-based user management (MongoDB)</li>
+        <li>Live dashboard with animated, premium UI</li>
+        <li>Visualization of 8 key metrics (Voltage, Current, Power, Temperature, Vibration, Speed, Slip, Power Factor) from Excel data</li>
+        <li>Random sampling of 12 records for real-time analytics</li>
+        <li>Live monitor for latest machine issue</li>
+        <li>Modular codebase: simulators, AI/ML, prevention engine, GenAI, dashboard, authentication</li>
+    </ul>
+    <h3>Plugins & Packages Used</h3>
+    <ul>
+        <li><b>Flask</b> - Web framework</li>
+        <li><b>pandas</b> - Data manipulation and Excel reading</li>
+        <li><b>flask-pymongo</b> - MongoDB integration</li>
+        <li><b>bcrypt</b> - Password hashing</li>
+        <li><b>flask-jwt-extended</b> - JWT authentication</li>
+        <li><b>Chart.js</b> - Frontend charting</li>
+        <li><b>dotenv</b> - Environment variable management</li>
+        <li><b>Werkzeug</b> - Secure password utilities</li>
+    </ul>
+    <h3>How it Works</h3>
+    <ol>
+        <li>Users sign up and log in securely (MongoDB stores credentials, passwords are hashed).</li>
+        <li>After login, the dashboard displays 8 separate charts for each metric, using 12 random records from the Excel dataset.</li>
+        <li>The backend serves data via a REST API endpoint (<code>/api/random-data</code>), which the frontend fetches and visualizes.</li>
+        <li>The latest machine issue is shown in a live monitor section.</li>
+        <li>All code is modular, with clear separation between authentication, AI/ML, and dashboard logic.</li>
+    </ol>
+    <h3>Deployment</h3>
+    <ul>
+        <li>Run <code>python src/dashboard/app.py</code> to start the Flask server.</li>
+        <li>MongoDB must be running locally on <code>mongodb://localhost:27017</code>.</li>
+        <li>Excel file must be placed in <code>data/Industrial_MultiClass_Dataset_With_Slip.xlsx</code>.</li>
+    </ul>
+    <h3>Further Details</h3>
+    <ul>
+        <li>Premium, animated UI with glassmorphism and dark mode for modern look and feel.</li>
+        <li>Extensible for additional analytics, metrics, or user roles as needed.</li>
+    </ul>
+        </main>
+    </div>

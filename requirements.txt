@@ -1,0 +1,12 @@
+pandas
+numpy
+scikit-learn
+tensorflow
+keras
+flask
+flask-jwt-extended
+bcrypt
+matplotlib
+seaborn
+joblib
+flask-cors
