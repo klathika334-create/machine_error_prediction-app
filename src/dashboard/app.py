@@ -313,6 +313,15 @@ def send_email_draft(solution):
         msg = MIMEMultipart()
         msg['From'] = email_user
         msg['Subject'] = solution['subject']
+        
+        # Add CC recipients if configured
+        cc_emails = os.environ.get('EMAIL_CC_RECIPIENTS', '')
+        if cc_emails:
+            # Clean up the list (remove extra spaces)
+            cc_list = [addr.strip() for addr in cc_emails.split(',') if addr.strip()]
+            if cc_list:
+                msg['Cc'] = ', '.join(cc_list)
+        
         msg['X-Auris-Draft-ID'] = draft_uuid  # Custom header for search
         msg.attach(MIMEText(solution['body'], 'plain'))
         
