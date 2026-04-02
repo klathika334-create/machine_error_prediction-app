@@ -1,41 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile - machine Error Prediction</title>
+    <title>User Profile | AURISPOWER</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { flex-direction: row; overflow: hidden; }
+        .profile-main { flex:1; display:flex; align-items:center; justify-content:center; padding:2rem; min-height:100vh; }
+        .profile-card { width:100%; max-width:460px; background:rgba(255,255,255,0.06); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.12); border-radius:1.5rem; box-shadow:0 8px 40px rgba(0,0,0,0.5); padding:2.6rem 2.2rem; animation:fadeInScale 0.75s cubic-bezier(0.34,1.56,0.64,1); }
+        .avatar-ring { width:86px; height:86px; border-radius:50%; background:linear-gradient(135deg,#a78bfa,#22d3ee); display:flex; align-items:center; justify-content:center; font-size:2.2rem; margin:0 auto 1rem; box-shadow:0 4px 20px rgba(34,211,238,0.3); }
+        .role-badge { display:inline-block; padding:0.2rem 0.9rem; border-radius:2rem; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; background:linear-gradient(135deg,#a78bfa,#22d3ee); color:#fff; }
+        .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:2rem 0; }
+        .stat-item label { font-size:0.75rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; }
+        .stat-item input { margin:0; background:rgba(255,255,255,0.05); color:#fff; font-size:0.9rem; border-color:rgba(255,255,255,0.08); cursor:default; }
+        .btn-dash { background:rgba(255,255,255,0.06)!important; color:#fff!important; border:1px solid rgba(255,255,255,0.12)!important; box-shadow:none!important; }
+        .btn-dash:hover { background:rgba(255,255,255,0.1)!important; border-color:#22d3ee!important; }
+        .logout-link { text-align:center; font-size:0.88rem; color:#f87171; font-weight:700; text-decoration:none; display:block; margin-top:0.5rem; }
+        .logout-link:hover { opacity:0.75; }
+    </style>
 </head>
-
 <body>
-    <h1>User Profile</h1>
-    <form>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div style="font-size: 4rem;">👤</div>
+    <nav class="app-sidebar">
+        <div style="margin-bottom:2.5rem;"><span class="branding-text">AURISPOWER</span></div>
+        <div style="display:flex;flex-direction:column;gap:0.7rem;flex:1;">
+            <button class="nav-btn" onclick="location.href='/'">📊 Dashboard</button>
+            <button class="nav-btn" onclick="location.href='/prediction-details'">🔍 Predictions</button>
+            <button class="nav-btn" onclick="history.back()">📧 Solutions</button>
         </div>
+        <button onclick="location.href='/logout'" style="width:100%;padding:0.8rem;border:none;border-radius:0.8rem;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);font-weight:700;cursor:pointer;margin-top:1rem;">🚪 Logout</button>
+    </nav>
 
-        <label>Username</label>
-        <input type="text" value="{{ username }}" readonly disabled style="cursor: default; opacity: 0.7;">
-
-        <label>Designation / Role</label>
-        <input type="text" value="{{ role }}" readonly disabled
-            style="cursor: default; opacity: 0.7; text-transform: capitalize;">
-
-        <label style="margin-top: 20px;">Times Logged In</label>
-        <input type="text" value="{{ login_count }}" readonly disabled style="cursor: default; opacity: 0.7;">
-
-        <label>Last Login</label>
-        <input type="text" value="{{ last_login }}" readonly disabled style="cursor: default; opacity: 0.7;">
-
-        <label>Last Logout</label>
-        <input type="text" value="{{ last_logout }}" readonly disabled style="cursor: default; opacity: 0.7;">
-
-        <div style="margin-top: 30px; display: flex; justify-content: space-between; width: 100%;">
-            <a href="/" style="color: #61dafb; text-decoration: none;">← Back to Dashboard</a>
-            <a href="/logout" style="color: #ff5370; text-decoration: none;">Logout</a>
+    <div class="profile-main">
+        <div class="profile-card">
+            <div style="text-align:center;margin-bottom:0.5rem;">
+                <div class="avatar-ring">👤</div>
+                <h2 style="font-size:1.5rem;color:#fff;margin:0.3rem 0 0.5rem;">{{ username }}</h2>
+                <span class="role-badge">{{ role }}</span>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <label>Login Count</label>
+                    <input type="text" value="{{ login_count }}" readonly disabled>
+                </div>
+                <div class="stat-item">
+                    <label>Last Login</label>
+                    <input type="text" value="{{ last_login }}" readonly disabled>
+                </div>
+                <div class="stat-item" style="grid-column:1/-1;">
+                    <label>Last Logout</label>
+                    <input type="text" value="{{ last_logout }}" readonly disabled>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.8rem;margin-top:1rem;">
+                <button class="btn-dash" onclick="location.href='/'">📊 Back to Dashboard</button>
+                <a class="logout-link" href="/logout">Sign Out</a>
+            </div>
         </div>
-    </form>
+    </div>
 </body>
-
 </html>

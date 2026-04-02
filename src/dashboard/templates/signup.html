@@ -3,34 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Machine Error Prediction</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Sign Up | AURISPOWER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%);
+            overflow: hidden;
+            color: #fff;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(167,139,250,0.3) 0%, transparent 70%);
+            top: -150px; left: -120px;
+            filter: blur(80px);
+            pointer-events: none;
+            animation: orb1 16s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(34,211,238,0.28) 0%, transparent 70%);
+            bottom: -120px; right: -80px;
+            filter: blur(80px);
+            pointer-events: none;
+            animation: orb2 20s ease-in-out infinite alternate;
+        }
+        @keyframes orb1 { to { transform: translate(50px,60px) scale(1.1); } }
+        @keyframes orb2 { to { transform: translate(-50px,-40px) scale(1.08); } }
+
+        #bg-canvas { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+        /* SVG huge text bg */
+        #svg-bg {
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 1; overflow: hidden;
+        }
+        .svg-text-row {
+            font-family: 'Outfit', sans-serif;
+            font-size: 150px; font-weight: 800;
+            letter-spacing: 14px;
+            fill: none;
+            stroke: rgba(167,139,250,0.06);
+            stroke-width: 1.5px;
+        }
+        @keyframes dr1 { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        @keyframes dr2 { from{transform:translateX(-50%)} to{transform:translateX(0)} }
+        @keyframes dr3 { from{transform:translateX(-15%)} to{transform:translateX(-65%)} }
+        .svg-text-row:nth-child(1){animation:dr1 32s linear infinite;}
+        .svg-text-row:nth-child(2){animation:dr2 40s linear infinite;}
+        .svg-text-row:nth-child(3){animation:dr3 48s linear infinite;}
+        .svg-text-row:nth-child(4){animation:dr2 36s linear infinite;}
+        .svg-text-row:nth-child(5){animation:dr1 55s linear infinite;}
+        .svg-text-row:nth-child(6){animation:dr3 44s linear infinite;}
+
+        .wrap {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center;
+            width: 100%; max-width: 600px;
+            padding: 1rem 1.5rem;
+            animation: floatIn 0.9s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes floatIn {
+            from { opacity:0; transform:translateY(28px) scale(0.95); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+
+        .brand {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem; font-weight: 800;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #a78bfa 0%, #22d3ee 50%, #f472b6 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3.5s linear infinite;
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .glass-card {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            padding: 2.2rem 2rem;
+        }
+
+        h2 { font-family:'Outfit',sans-serif; font-size:1.6rem; font-weight:800; margin-bottom:0.2rem; }
+        .sub { color:#94a3b8; font-size:0.88rem; margin-bottom:1.8rem; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1.2rem;
+        }
+        .full { grid-column: 1 / -1; }
+
+        label { display:block; font-size:0.78rem; font-weight:600; color:#94a3b8; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.4px; }
+
+        input, select {
+            width: 100%; padding: 0.72rem 0.9rem;
+            margin-bottom: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.7rem;
+            background: rgba(255,255,255,0.05);
+            color: #fff; font-size:0.9rem;
+            font-family:'Inter',sans-serif;
+            outline:none;
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+            appearance: none; -webkit-appearance: none;
+        }
+        input::placeholder { color:#475569; }
+        input:focus, select:focus {
+            border-color: #22d3ee;
+            box-shadow: 0 0 0 3px rgba(34,211,238,0.15);
+            transform: scale(1.01);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .pw-strength { height:4px; border-radius:2px; margin-top:-0.8rem; margin-bottom:1.1rem; background:#1e1e35; overflow:hidden; }
+        .pw-bar { height:100%; border-radius:2px; width:0%; transition: width 0.4s, background 0.4s; }
+
+        .role-wrap { position:relative; }
+        .role-wrap::after { content:'▾'; position:absolute; right:0.85rem; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none; font-size:0.8rem; }
+        select option { background:#1a1a2e; }
+
+        button[type="submit"] {
+            width:100%; margin-top:0.5rem;
+            padding:0.9rem;
+            background: linear-gradient(135deg, #a78bfa 0%, #22d3ee 70%);
+            background-size: 200% auto;
+            color:#fff; font-weight:700; border:none;
+            border-radius:0.75rem; font-size:0.95rem;
+            font-family:'Outfit',sans-serif; cursor:pointer;
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, background-position 0.4s;
+        }
+        button[type="submit"]:hover {
+            transform:translateY(-3px) scale(1.025);
+            box-shadow:0 12px 28px rgba(34,211,238,0.3);
+            background-position:right center;
+        }
+
+        .msg {
+            margin-bottom:1rem; padding:0.75rem 1rem;
+            border-radius:0.7rem; font-size:0.88rem; font-weight:600;
+        }
+        .msg.error   { background:rgba(248,113,113,0.12); color:#f87171; border:1px solid rgba(248,113,113,0.25); }
+        .msg.success { background:rgba(34,211,238,0.1);  color:#22d3ee; border:1px solid rgba(34,211,238,0.25); }
+
+        .login-link { margin-top:1.3rem; font-size:0.87rem; color:#94a3b8; text-align:center; }
+        .login-link a { color:#a78bfa; font-weight:700; text-decoration:none; }
+        .login-link a:hover { color:#c4b5fd; }
+    </style>
 </head>
 <body>
-    <h1>Sign Up</h1>
-    <form method="post" action="/signup">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
-        <label for="confirm">Confirm Password:</label><br>
-        <input type="password" id="confirm" name="confirm" required><br><br>
-        <label for="role">Role:</label><br>
-        <select id="role" name="role" required>
-            <option value="Owner">Owner</option>
-            <option value="Manager">Manager</option>
-            <option value="Electrician">Electrician</option>
-            <option value="Floor Engineer">Floor Engineer</option>
-            <option value="Site Engineer">Site Engineer</option>
-        </select><br><br>
-        <button type="submit">Sign Up</button>
-    </form>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-    {% if success %}
-        <p style="color:green;">{{ success }}</p>
-    {% endif %}
-    <p>Already have an account? <a href="/login">Login here</a>.</p>
+    <canvas id="bg-canvas"></canvas>
+
+    <svg id="svg-bg" aria-hidden="true">
+        <text class="svg-text-row" y="130">AURISPOWER ⚡ AURISPOWER ⚡ AURISPOWER ⚡ AURISPOWER ⚡ AURISPOWER ⚡</text>
+        <text class="svg-text-row" y="290">AURISPOWER ◈ AURISPOWER ◈ AURISPOWER ◈ AURISPOWER ◈ AURISPOWER ◈</text>
+        <text class="svg-text-row" y="450">AURISPOWER ⏻ AURISPOWER ⏻ AURISPOWER ⏻ AURISPOWER ⏻ AURISPOWER ⏻</text>
+        <text class="svg-text-row" y="610">AURISPOWER ◆ AURISPOWER ◆ AURISPOWER ◆ AURISPOWER ◆ AURISPOWER ◆</text>
+        <text class="svg-text-row" y="770">AURISPOWER ★ AURISPOWER ★ AURISPOWER ★ AURISPOWER ★ AURISPOWER ★</text>
+        <text class="svg-text-row" y="930">AURISPOWER ✦ AURISPOWER ✦ AURISPOWER ✦ AURISPOWER ✦ AURISPOWER ✦</text>
+    </svg>
+
+    <div class="wrap">
+        <span class="brand">AURISPOWER</span>
+
+        <div class="glass-card">
+            <h2>Create Account</h2>
+            <p class="sub">Join the AURISPOWER monitoring platform</p>
+
+            {% if error %}<div class="msg error">⚠ {{ error }}</div>{% endif %}
+            {% if success %}<div class="msg success">✅ {{ success }} — <a href="/login" style="color:#22d3ee;font-weight:700;">Sign in →</a></div>{% endif %}
+
+            <form method="post" action="/signup" style="all:unset;display:block;width:100%;">
+                <div class="form-grid">
+                    <div>
+                        <label>Username</label>
+                        <input type="text" name="username" placeholder="Choose a username" required>
+                    </div>
+                    <div class="role-wrap">
+                        <label>Role</label>
+                        <select name="role" required>
+                            <option value="user">👤 User</option>
+                            <option value="electrician">⚡ Electrician</option>
+                            <option value="engineer">🔧 Engineer</option>
+                            <option value="admin">🛡️ Admin</option>
+                            <option value="owner">👑 Owner</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Password</label>
+                        <input type="password" id="pw" name="password" placeholder="Create a password" required>
+                        <div class="pw-strength"><div class="pw-bar" id="pw-bar"></div></div>
+                    </div>
+                    <div>
+                        <label>Confirm Password</label>
+                        <input type="password" name="confirm_password" placeholder="Repeat password" required>
+                    </div>
+                </div>
+                <button type="submit">Create Account →</button>
+            </form>
+        </div>
+
+        <p class="login-link">Already have an account? <a href="/login">Sign in →</a></p>
+    </div>
+
+    <script>
+    // Password strength
+    const pw = document.getElementById('pw');
+    const bar = document.getElementById('pw-bar');
+    pw && pw.addEventListener('input', () => {
+        const v = pw.value;
+        let s = 0;
+        if(v.length >= 8) s++;
+        if(/[A-Z]/.test(v)) s++;
+        if(/[0-9]/.test(v)) s++;
+        if(/[^A-Za-z0-9]/.test(v)) s++;
+        const colors = ['#ef4444','#f97316','#eab308','#22c55e'];
+        const ws = ['25%','50%','75%','100%'];
+        bar.style.width = s ? ws[s-1] : '0%';
+        bar.style.background = s ? colors[s-1] : 'transparent';
+    });
+
+    // Canvas sparks
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    const GLYPHS = ['⚡','◈','⏻','◆','★','✦'];
+    let W, H, particles = [], sparks = [];
+    function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+    function mkP(){ return { x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3, size:14+Math.random()*16, glyph:GLYPHS[Math.floor(Math.random()*GLYPHS.length)], opacity:.04+Math.random()*.06, rot:Math.random()*Math.PI*2, rotSpeed:(Math.random()-.5)*.015 }; }
+    function init(){ resize(); particles=Array.from({length:50},mkP); }
+    function spawnSparks(x,y){ for(let i=0;i<7;i++){ const a=Math.random()*Math.PI*2, s=1+Math.random()*3; sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1}); }}
+    function loop(){
+        ctx.clearRect(0,0,W,H);
+        particles.forEach(p=>{
+            p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotSpeed;
+            if(p.x<-60) p.x=W+60; if(p.x>W+60) p.x=-60;
+            if(p.y<-60) p.y=H+60; if(p.y>H+60) p.y=-60;
+            ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+            ctx.font=`${p.size}px Outfit,sans-serif`;
+            ctx.fillStyle=`rgba(167,139,250,${p.opacity})`;
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(p.glyph,0,0); ctx.restore();
+        });
+        sparks=sparks.filter(s=>s.life>.05);
+        sparks.forEach(s=>{s.x+=s.vx;s.y+=s.vy;s.vx*=.92;s.vy*=.92;s.life*=.87;ctx.beginPath();ctx.arc(s.x,s.y,2,0,Math.PI*2);ctx.fillStyle=`rgba(34,211,238,${s.life})`;ctx.fill();});
+        requestAnimationFrame(loop);
+    }
+    setInterval(()=>spawnSparks(Math.random()*W,Math.random()*H),1400);
+    window.addEventListener('resize',resize);
+    init(); loop();
+    </script>
 </body>
 </html>

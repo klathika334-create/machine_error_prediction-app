@@ -348,7 +348,7 @@
     </style>
 </head>
 
-<body style="margin:0; padding:0; background: #181824; color: #fff; font-family: 'Segoe UI',sans-serif;">
+<body style="margin:0;padding:0;flex-direction:row;overflow:hidden;">
 
     <!-- Toast Container -->
     <div id="toast-container"></div>
@@ -375,103 +375,221 @@
     </div>
 
     <div style="display: flex; min-height: 100vh;">
-        <nav
-            style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
-            <div style="margin-bottom: 2rem;">
-                <a href="/profile" target="_blank" style="text-decoration: none; color: inherit; cursor: pointer;"
+        <nav class="app-sidebar">
+            <div style="margin-bottom:2.5rem;">
+                <span class="branding-text">AURISPOWER</span>
+            </div>
+            <div style="margin-bottom:1.5rem;">
+                <a href="/profile" target="_blank"
+                    style="text-decoration:none;display:flex;align-items:center;gap:0.7rem;padding:0.75rem 0.9rem;border-radius:0.8rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);transition:all 0.2s;"
                     title="View User Profile">
-                    <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;">👤 {{ username }}</div>
+                    <span style="font-size:1.1rem;">👤</span>
+                    <span style="font-weight:600;color:#22d3ee;font-size:0.9rem;">{{ username }}</span>
                 </a>
             </div>
-            <button onclick="location.href='/'"
-                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Charts</button>
-            <button onclick="location.href='/prediction-details'"
-                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction
-                Details</button>
-            <div class="nav-btn-wrapper" style="margin-bottom: 1rem;">
-                <button onclick="openSolutions()"
-                    style="width: 100%; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: linear-gradient(135deg, #1a1a3e, #23233b); color: #22d3ee; font-size: 1rem; cursor: pointer; transition: background 0.2s; border: 1px solid #22d3ee33;">📧
-                    Solutions</button>
-                <span class="notification-badge" id="solutions-badge" style="display:none;">0</span>
+            <div style="display:flex;flex-direction:column;gap:0.7rem;flex:1;">
+                <button class="nav-btn active" onclick="location.href='/'">📊 Dashboard</button>
+                <button class="nav-btn" onclick="location.href='/prediction-details'">🔍 Predictions</button>
+                <div class="nav-btn-wrapper" style="position:relative;">
+                    <button class="nav-btn" onclick="openSolutions()">📧 Solutions</button>
+                    <span class="notification-badge" id="solutions-badge" style="display:none;">0</span>
+                </div>
+                {% if session['role'] in ['admin', 'owner'] %}
+                <button class="nav-btn" onclick="location.href='/users'">👥 User Management</button>
+                {% endif %}
             </div>
-            {% if session['role'] in ['admin', 'owner'] %}
-            <button onclick="location.href='/users'"
-                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
-            {% endif %}
             <button onclick="location.href='/logout'"
-                style="width: 100%; margin-top: auto; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #ef4444; color: #fff; font-size: 1rem; cursor: pointer;">Logout</button>
+                style="width:100%;padding:0.8rem;border:none;border-radius:0.8rem;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);font-weight:700;cursor:pointer;margin-top:1rem;">
+                🚪 Logout
+            </button>
         </nav>
-        <main style="flex:1; padding: 2rem; position: relative;">
-            <h1 style="margin-top:0;">Machine Error Prediction Dashboard</h1>
-            <p>Welcome to the real-time monitoring and prediction dashboard.</p>
-            <div id="dashboard-content">
-                <div class="charts-wrapper"
-                    style="display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: flex-start; align-items: flex-start; max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Voltage (V)</h3><canvas id="voltageChart" height="120" width="220"></canvas>
-                    </div>
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Current (A)</h3><canvas id="currentChart" height="120" width="220"></canvas>
-                    </div>
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Power (kW)</h3><canvas id="powerChart" height="120" width="220"></canvas>
-                    </div>
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Temperature (°C)</h3><canvas id="temperatureChart" height="120" width="220"></canvas>
-                    </div>
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Vibration (mm/s)</h3><canvas id="vibrationChart" height="120" width="220"></canvas>
-                    </div>
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Speed (RPM)</h3><canvas id="speedChart" height="120" width="220"></canvas>
-                    </div>
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Slip</h3><canvas id="slipChart" height="120" width="220"></canvas>
-                    </div>
-                    <div class="chart-container"
-                        style="flex: 0 0 30%; min-width: 220px; max-width: 32%; background: rgba(40,40,60,0.85); border-radius: 1.2rem; padding: 0.7rem; margin-bottom: 1.2rem; box-shadow: 0 4px 24px 0 rgba(31,38,135,0.17);">
-                        <h3>Power Factor</h3><canvas id="powerFactorChart" height="120" width="220"></canvas>
-                    </div>
-                </div>
-                <div style="margin-top: 2rem; text-align: center;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
-                        <span
-                            style="display: inline-block; background: #ef4444; color: #fff; border-radius: 50%; width: 2.5rem; height: 2.5rem; line-height: 2.5rem; font-size: 2rem; box-shadow: 0 0 12px #ef4444aa;">&#9888;</span>
-                        <h2 style="margin: 0; color: #fff;">Fault:</h2>
-                        <div id="live-issue" style="font-size: 1.5rem; color: #ef4444; font-weight: bold;"></div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Chatbot Interface -->
-            <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <main style="flex:1;padding:1.8rem 2rem 2rem;overflow-y:auto;min-height:100vh;">
+            <header style="margin-bottom:0.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;flex-shrink:0;">
+                <div>
+                    <h1 style="margin:0;font-size:1.6rem;">System Overview</h1>
+                    <p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.1rem;">Real-time predictive maintenance monitoring.</p>
+                </div>
+                <div style="display:flex;gap:0.8rem;align-items:center;background:rgba(255,255,255,0.04);padding:0.75rem 1rem;border-radius:0.9rem;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(12px);">
+                    <select id="report-plant" style="background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.1);padding:0.55rem 0.9rem;border-radius:0.7rem;cursor:pointer;outline:none;font-size:0.9rem;">
+                        <option value="all">All Plants / Industry</option>
+                        <option value="plant-a">Plant A</option>
+                        <option value="plant-b">Plant B</option>
+                        <option value="plant-c">Plant C</option>
+                    </select>
+
+                    <!-- Single Report button with dropdown -->
+                    <div id="report-btn-wrap" style="position: relative;">
+                        <button id="report-btn" onclick="toggleReportMenu(event)"
+                            style="padding:0.55rem 1.2rem;background:linear-gradient(135deg,#a78bfa,#22d3ee);color:#fff;border:none;border-radius:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;display:flex;align-items:center;gap:0.5rem;width:auto;box-shadow:0 4px 14px rgba(34,211,238,0.25);">
+                            📄 Report <span id="report-caret" style="font-size:0.72rem;transition:transform 0.2s;">▼</span>
+                        </button>
+                        <div id="report-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#1a1a2e;border:1px solid rgba(255,255,255,0.12);border-radius:0.9rem;overflow:hidden;min-width:160px;box-shadow:0 8px 28px rgba(0,0,0,0.5);z-index:500;animation:reportMenuIn 0.18s cubic-bezier(0.34,1.56,0.64,1);">
+                            <button onclick="downloadReport('weekly')"
+                                style="width:100%;padding:0.75rem 1.1rem;background:transparent;color:#fff;border:none;border-bottom:1px solid rgba(255,255,255,0.1);text-align:left;cursor:pointer;font-size:0.92rem;transition:background 0.15s;display:flex;align-items:center;gap:0.6rem;width:auto;box-shadow:none;letter-spacing:0;"
+                                onmouseover="this.style.background='rgba(34,211,238,0.1)'" onmouseout="this.style.background='transparent'">
+                                📅 Weekly
+                            </button>
+                            <button onclick="downloadReport('monthly')"
+                                style="width:100%;padding:0.75rem 1.1rem;background:transparent;color:#fff;border:none;text-align:left;cursor:pointer;font-size:0.92rem;transition:background 0.15s;display:flex;align-items:center;gap:0.6rem;width:auto;box-shadow:none;letter-spacing:0;"
+                                onmouseover="this.style.background='rgba(34,211,238,0.1)'" onmouseout="this.style.background='transparent'">
+                                📊 Monthly
+                            </button>
+                        </div>
+                    </div>
+
+                    <style>
+                        @keyframes reportMenuIn {
+                            from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+                            to   { opacity: 1; transform: translateY(0)     scale(1);    }
+                        }
+                    </style>
+                    <script>
+                        function toggleReportMenu(e) {
+                            e.stopPropagation();
+                            const menu  = document.getElementById('report-menu');
+                            const caret = document.getElementById('report-caret');
+                            const open  = menu.style.display === 'block';
+                            menu.style.display  = open ? 'none' : 'block';
+                            caret.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+                        }
+                        // Close when clicking elsewhere
+                        document.addEventListener('click', function() {
+                            document.getElementById('report-menu').style.display = 'none';
+                            document.getElementById('report-caret').style.transform = 'rotate(0deg)';
+                        });
+                        function downloadReport(period) {
+                            document.getElementById('report-menu').style.display = 'none';
+                            document.getElementById('report-caret').style.transform = 'rotate(0deg)';
+                            const plant = document.getElementById('report-plant').value;
+                            window.location.href = `/api/report?period=${period}&plant=${plant}`;
+                        }
+                    </script>
+                </div>
+            </header>
+
+            <div id="dashboard-content" style="display:flex;flex-direction:column;gap:1.2rem;">
+
+                <!-- ── KPI Stat Cards ── -->
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
+
+                    <div class="glass-container" style="padding:0.8rem 1.1rem;display:flex;align-items:center;gap:0.8rem;">
+                        <div style="width:38px;height:38px;border-radius:0.7rem;background:linear-gradient(135deg,#a78bfa,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🏭</div>
+                        <div>
+                            <div style="font-size:0.68rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Machines</div>
+                            <div id="kpi-machines" style="font-size:1.25rem;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;">12</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-container" style="padding:0.8rem 1.1rem;display:flex;align-items:center;gap:0.8rem;">
+                        <div style="width:38px;height:38px;border-radius:0.7rem;background:linear-gradient(135deg,#f472b6,#be185d);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">⚠️</div>
+                        <div>
+                            <div style="font-size:0.68rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Fault Rate</div>
+                            <div id="kpi-fault" style="font-size:1.25rem;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;">—</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-container" style="padding:0.8rem 1.1rem;display:flex;align-items:center;gap:0.8rem;">
+                        <div style="width:38px;height:38px;border-radius:0.7rem;background:linear-gradient(135deg,#22d3ee,#0891b2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">✅</div>
+                        <div>
+                            <div style="font-size:0.68rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Uptime</div>
+                            <div id="kpi-uptime" style="font-size:1.25rem;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;">99.8%</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-container" style="padding:0.8rem 1.1rem;display:flex;align-items:center;gap:0.8rem;">
+                        <div style="width:38px;height:38px;border-radius:0.7rem;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🔔</div>
+                        <div>
+                            <div style="font-size:0.68rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Alerts</div>
+                            <div id="kpi-alerts" style="font-size:1.25rem;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── 8 Live Charts ── -->
+                <div class="charts-wrapper"
+                    style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#22d3ee;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">⚡ Voltage (V)</h3>
+                        <canvas id="voltageChart" height="160" style="width:100%;"></canvas>
+                    </div>
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#a78bfa;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">〰 Current (A)</h3>
+                        <canvas id="currentChart" height="160" style="width:100%;"></canvas>
+                    </div>
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#f472b6;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">⚙ Power (kW)</h3>
+                        <canvas id="powerChart" height="160" style="width:100%;"></canvas>
+                    </div>
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#f59e0b;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">🌡 Temperature (°C)</h3>
+                        <canvas id="temperatureChart" height="160" style="width:100%;"></canvas>
+                    </div>
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#38bdf8;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">📳 Vibration (mm/s)</h3>
+                        <canvas id="vibrationChart" height="160" style="width:100%;"></canvas>
+                    </div>
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#4ade80;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">🔄 Speed (RPM)</h3>
+                        <canvas id="speedChart" height="160" style="width:100%;"></canvas>
+                    </div>
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#fb923c;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">📉 Slip</h3>
+                        <canvas id="slipChart" height="160" style="width:100%;"></canvas>
+                    </div>
+
+                    <div class="chart-container glass-container" style="padding:1.2rem;">
+                        <h3 style="margin:0 0 0.4rem;color:#c084fc;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-family:'Outfit',sans-serif;">📊 Power Factor</h3>
+                        <canvas id="powerFactorChart" height="160" style="width:100%;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Active Fault Banner -->
+                <div class="glass-container" style="padding:0.9rem 1.4rem;display:flex;align-items:center;justify-content:space-between;border-left:4px solid #22d3ee;">
+                    <div style="display:flex;align-items:center;gap:0.8rem;">
+                        <div style="width:36px;height:36px;background:rgba(34,211,238,0.1);border-radius:0.7rem;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">⚠️</div>
+                        <div>
+                            <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.2rem;">Active Fault Detection</div>
+                            <div id="live-issue" style="font-size:1.2rem;color:#fff;font-weight:800;font-family:'Outfit',sans-serif;">Normal Operation</div>
+                        </div>
+                    </div>
+                    <button onclick="openSolutions()"
+                        style="width:auto;padding:0.65rem 1.4rem;background:linear-gradient(135deg,#a78bfa,#22d3ee);color:#fff;border:none;border-radius:0.8rem;font-weight:700;font-size:0.88rem;cursor:pointer;box-shadow:0 4px 14px rgba(34,211,238,0.25);letter-spacing:0.3px;">
+                        📧 View Solutions
+                    </button>
+                </div>
+
+            </div><!-- /dashboard-content -->
+
+            <!-- ── Chatbot Interface ── -->
+            <div id="chatbot-container" style="position:fixed;bottom:24px;right:24px;z-index:1000;">
                 <button id="chatbot-toggle" onclick="toggleChat()"
-                    style="width: 60px; height: 60px; border-radius: 30px; background: #22d3ee; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; font-size: 24px;">🤖</button>
+                    style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#22d3ee);border:none;box-shadow:0 6px 20px rgba(34,211,238,0.35);cursor:pointer;font-size:1.5rem;display:flex;align-items:center;justify-content:center;transition:transform 0.3s;">🤖</button>
                 <div id="chatbot-window"
-                    style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; height: 500px; background: rgba(30,30,40,0.95); border-radius: 1rem; border: 1px solid #444; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5);">
-                    <div
-                        style="padding: 1rem; background: #23233b; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: bold; color: #22d3ee;">System Assistant</span>
-                        <span onclick="toggleChat()" style="cursor: pointer; font-size: 1.2rem;">&times;</span>
+                    style="display:none;position:absolute;bottom:72px;right:0;width:340px;height:480px;background:rgba(15,15,26,0.96);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:1.2rem;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.6);">
+                    <div style="padding:1rem 1.2rem;background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:700;color:#22d3ee;font-family:'Outfit',sans-serif;">🤖 System Assistant</span>
+                        <span onclick="toggleChat()" style="cursor:pointer;font-size:1.3rem;color:#94a3b8;">&times;</span>
                     </div>
                     <div id="chat-messages"
-                        style="flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem;">
-                        <div
-                            style="align-self: flex-start; background: #333; padding: 0.8rem; border-radius: 0.8rem 0.8rem 0.8rem 0; max-width: 80%;">
-                            Hello! I am your AI assistant. I will notify you of any critical system faults detected.
+                        style="flex:1;padding:1rem;overflow-y:auto;display:flex;flex-direction:column;gap:0.7rem;background:transparent;">
+                        <div style="align-self:flex-start;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);padding:0.75rem 1rem;border-radius:0.9rem 0.9rem 0.9rem 0;max-width:85%;font-size:0.88rem;color:#e2e8f0;line-height:1.5;">
+                            Hello! I'm your AI assistant. I'll notify you of any critical system faults detected.
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -750,26 +868,27 @@
                         },
                         options: {
                             responsive: true,
+                            maintainAspectRatio: true,
                             animation: false,
                             plugins: {
-                                legend: { labels: { color: '#fff' } },
+                                legend: { labels: { color: '#94a3b8', font: { size: 11 } } },
                                 title: { display: false }
                             },
                             scales: {
-                                x: { ticks: { color: '#a3a3a3' } },
-                                y: { ticks: { color: '#a3a3a3' } }
+                                x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                                y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' } }
                             }
                         }
                     });
                 }
-                makeChart('voltageChart', 'Voltage (V)', voltage, 'rgba(255,99,132,1)');
-                makeChart('currentChart', 'Current (A)', current, 'rgba(54,162,235,1)');
-                makeChart('powerChart', 'Power (kW)', power, 'rgba(255,206,86,1)');
-                makeChart('temperatureChart', 'Temperature (°C)', temp, 'rgba(75,192,192,1)');
-                makeChart('vibrationChart', 'Vibration (mm/s)', vibration, 'rgba(153,102,255,1)');
-                makeChart('speedChart', 'Speed (RPM)', speed, 'rgba(255,159,64,1)');
-                makeChart('slipChart', 'Slip', slip, 'rgba(255,99,71,1)');
-                makeChart('powerFactorChart', 'Power Factor', powerFactor, 'rgba(100,255,218,1)');
+                makeChart('voltageChart',     'Voltage (V)',      voltage,     '#22d3ee');
+                makeChart('currentChart',     'Current (A)',      current,     '#a78bfa');
+                makeChart('powerChart',       'Power (kW)',       power,       '#f472b6');
+                makeChart('temperatureChart', 'Temperature (°C)', temp,        '#f59e0b');
+                makeChart('vibrationChart',   'Vibration (mm/s)', vibration,   '#38bdf8');
+                makeChart('speedChart',       'Speed (RPM)',      speed,       '#4ade80');
+                makeChart('slipChart',        'Slip',             slip,        '#fb923c');
+                makeChart('powerFactorChart', 'Power Factor',     powerFactor, '#c084fc');
             } catch (e) {
                 console.error("Error fetching data:", e);
             }

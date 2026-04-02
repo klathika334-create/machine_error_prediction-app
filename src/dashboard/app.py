@@ -37,8 +37,12 @@ lstm_predictor.build_model()
 @app.route('/')
 def home():
     if 'username' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('intro'))
     return render_template('index.html', username=session.get('username'), role=session.get('role'))
+
+@app.route('/intro')
+def intro():
+    return render_template('intro.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -397,24 +401,34 @@ def fault_alert():
                 'timestamp': __import__('datetime').datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
         
-        # Sample a random row
-        sample = df_dataset.sample(1)
-        
-        # LSTM prediction
-        sample_features = sample.drop(columns=['Fault_Type', 'Combination'])
-        prediction = lstm_predictor.predict(sample_features.values)
-        fault_type, combination = lstm_predictor.get_fault_details(prediction)
-        
-        # Also get the actual fault from the sampled row for comparison
-        actual_fault = sample['Fault_Type'].values[0]
-        actual_combo = sample['Combination'].values[0]
-        
-        # Use the LSTM-predicted fault for the solution
-        # If the predicted fault is unknown/normal, fall back to actual
-        display_fault = fault_type if fault_type not in ['Unknown', 'Normal', 'No Fault'] else actual_fault
-        display_combo = combination if combination not in ['Unknown', '-'] else actual_combo
-        
-        is_fault = display_fault not in ['Normal', 'No Fault', 'Unknown', '-', '']
+        # Sample a random row — prefer fault rows for alert variety
+        # Try up to 5 samples to find a non-normal row
+        sample = None
+        for _ in range(5):
+            candidate = df_dataset.sample(1)
+            if str(candidate['Fault_Type'].values[0]).strip() not in ['Normal Operation', 'Normal', 'No Fault', '-']:
+                sample = candidate
+                break
+        if sample is None:
+            sample = df_dataset.sample(1)
+
+        # Get actual fault directly from the dataset row (ground truth)
+        actual_fault = str(sample['Fault_Type'].values[0]).strip()
+        actual_combo = str(sample['Combination'].values[0]).strip()
+
+        # LSTM prediction for raw value reference only
+        try:
+            sample_features = sample.drop(columns=['Fault_Type', 'Combination'])
+            prediction = lstm_predictor.predict(sample_features.values)
+            prediction_raw = float(prediction[0][0])
+        except Exception:
+            prediction_raw = 0.0
+
+        # Use actual dataset fault — this guarantees all 23 fault types can appear
+        display_fault = actual_fault
+        display_combo = actual_combo if actual_combo not in ['-', ''] else 'N/A'
+
+        is_fault = display_fault not in ['Normal Operation', 'Normal', 'No Fault', 'Unknown', '-', '']
         
         from genai.explanation import generate_solution
         
@@ -442,7 +456,7 @@ def fault_alert():
                 'subject': solution['subject'],
                 'body': solution['body'],
                 'timestamp': solution['timestamp'],
-                'prediction_raw': float(prediction[0][0]),
+                'prediction_raw': prediction_raw,
                 'email_sent': bool(email_link),
                 'email_link': solution['email_link'],
                 'alerts_remaining': MAX_ALERTS_PER_MINUTE - len(alert_timestamps)
@@ -474,6 +488,48 @@ def clear_solutions():
         return jsonify({'error': 'Not authenticated'}), 401
     solutions_history.clear()
     return jsonify({'status': 'cleared'})
+
+@app.route('/api/report')
+def generate_report():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+        
+    period = request.args.get('period', 'monthly')
+    plant = request.args.get('plant', 'all')
+    
+    if df_dataset.empty:
+        return jsonify({'error': 'Dataset not loaded'}), 500
+        
+    report_lines = []
+    report_lines.append(f"AURISPOWER System Report")
+    report_lines.append(f"Period: {period.capitalize()}")
+    report_lines.append(f"Plant: {'All Plants' if plant == 'all' else plant.capitalize()}")
+    report_lines.append(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    report_lines.append("--------------------------------------------------")
+    report_lines.append(f"Total Records Analyzed: {len(df_dataset)}")
+    
+    metrics = ['Voltage (V)', 'Current (A)', 'Power (kW)', 'Temperature (°C)', 'Vibration (mm/s)', 'Speed (RPM)', 'Slip', 'Power Factor']
+    report_lines.append("\n=== Average Metrics ===")
+    for m in metrics:
+        if m in df_dataset.columns:
+            val = pd.to_numeric(df_dataset[m], errors='coerce').mean()
+            report_lines.append(f"{m}: {val:.4f}")
+            
+    report_lines.append("\n=== Fault Instances ===")
+    if 'Fault_Type' in df_dataset.columns:
+        fault_counts = df_dataset['Fault_Type'].value_counts()
+        for f, c in fault_counts.items():
+            if f not in ['Normal', 'No Fault', '-']:
+                report_lines.append(f"{f}: {c}")
+                
+    report_content = "\n".join(report_lines)
+    
+    from flask import Response
+    return Response(
+        report_content,
+        mimetype="text/plain",
+        headers={"Content-disposition": f"attachment; filename=aurispower_{period}_report.txt"}
+    )
 
 # Add additional routes for user management, charts, etc. as needed
 

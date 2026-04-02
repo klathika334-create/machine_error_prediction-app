@@ -1,79 +1,104 @@
-<body style="margin:0; padding:0; background: #181824; color: #fff; font-family: 'Segoe UI',sans-serif;">
-    <div style="display: flex; min-height: 100vh;">
-        <nav
-            style="width: 220px; background: rgba(30,30,40,0.95); box-shadow: 2px 0 16px 0 rgba(31,38,135,0.17); display: flex; flex-direction: column; align-items: flex-start; padding: 2rem 1rem 1rem 1.5rem;">
-            <div style="margin-bottom: 2rem;">
-                <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;">👤 {{ username }}</div>
-            </div>
-            <button onclick="location.href='/'"
-                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Charts</button>
-            <button onclick="location.href='/prediction-details'"
-                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Prediction
-                Details</button>
-            <button onclick="location.href='/#solutions'"
-                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: linear-gradient(135deg, #1a1a3e, #23233b); color: #22d3ee; font-size: 1rem; cursor: pointer; transition: background 0.2s; border: 1px solid #22d3ee33;">📧
-                Solutions</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictions | AURISPOWER</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { flex-direction:row; overflow:hidden; }
+        .pred-main { flex:1; padding:2.5rem 3rem; overflow-y:auto; min-height:100vh; }
+        .section-tabs { display:flex; gap:0.7rem; flex-wrap:wrap; margin-bottom:2rem; }
+        .tab-btn { padding:0.65rem 1.3rem; border-radius:2rem; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:#94a3b8; font-weight:600; font-size:0.88rem; cursor:pointer; transition:all 0.2s; width:auto; box-shadow:none; letter-spacing:0; }
+        .tab-btn:hover, .tab-btn.active { background:linear-gradient(135deg,#a78bfa,#22d3ee); color:#fff; border-color:transparent; transform:translateY(-2px); box-shadow:0 6px 18px rgba(34,211,238,0.25); }
+        .pred-section { display:none; padding:2rem; animation:fadeInScale 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .pred-section.active { display:block; }
+        .pred-section h2 { font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:700; color:#22d3ee; margin-bottom:1.2rem; margin-top:0; }
+        .pred-data-box { background:rgba(0,0,0,0.25); border-radius:1rem; padding:1.5rem; border:1px solid rgba(255,255,255,0.08); line-height:1.8; color:#e2e8f0; }
+        .pred-data-box p { margin-bottom:0.4rem; }
+        .pred-data-box b { color:#94a3b8; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; }
+        .value-pill { display:inline-block; padding:0.2rem 0.8rem; border-radius:2rem; font-weight:700; font-size:0.9rem; }
+        .value-normal  { background:rgba(34,197,94,0.12);  color:#4ade80; }
+        .value-anomaly { background:rgba(239,68,68,0.12);   color:#f87171; }
+        .value-default { background:rgba(34,211,238,0.12);  color:#22d3ee; }
+    </style>
+</head>
+<body>
+    <nav class="app-sidebar">
+        <div style="margin-bottom:2.5rem;"><span class="branding-text">AURISPOWER</span></div>
+        <div style="margin-bottom:1.5rem;">
+            <a href="/profile" style="text-decoration:none;display:flex;align-items:center;gap:0.7rem;padding:0.75rem 0.9rem;border-radius:0.8rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);transition:all 0.2s;" title="Profile">
+                <span>👤</span>
+                <span style="font-weight:600;color:#22d3ee;font-size:0.9rem;">{{ username }}</span>
+            </a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.7rem;flex:1;">
+            <button class="nav-btn" onclick="location.href='/'">📊 Dashboard</button>
+            <button class="nav-btn active" onclick="location.href='/prediction-details'">🔍 Predictions</button>
+            <button class="nav-btn" onclick="history.back()">📧 Solutions</button>
             {% if session['role'] in ['admin', 'owner'] %}
-            <button onclick="location.href='/users'"
-                style="width: 100%; margin-bottom: 1rem; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #23233b; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Users</button>
+            <button class="nav-btn" onclick="location.href='/users'">👥 User Management</button>
             {% endif %}
-            <button onclick="location.href='/logout'"
-                style="width: 100%; margin-top: auto; padding: 0.7rem 1rem; border: none; border-radius: 0.7rem; background: #ef4444; color: #fff; font-size: 1rem; cursor: pointer;">Logout</button>
-        </nav>
-        <main style="flex:1; padding: 2rem;">
-            <h1 style="margin-top:0;">Prediction Details</h1>
-            <div style="margin-bottom: 2rem;">
-                <button onclick="showSection('anomaly')"
-                    style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Anomaly
-                    Detection</button>
-                <button onclick="showSection('lstm')"
-                    style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">LSTM
-                    Prediction</button>
-                <button onclick="showSection('pattern')"
-                    style="margin-right:1rem; padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Pattern
-                    Deviation</button>
-                <button onclick="showSection('timeseries')"
-                    style="padding:0.5rem 1.2rem; border-radius:0.5rem; border:none; background:#23233b; color:#fff; font-size:1rem;">Time
-                    Series</button>
+        </div>
+        <button onclick="location.href='/logout'" style="width:100%;padding:0.8rem;border:none;border-radius:0.8rem;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);font-weight:700;cursor:pointer;margin-top:1rem;">🚪 Logout</button>
+    </nav>
+
+    <div class="pred-main">
+        <header style="margin-bottom:2rem;">
+            <h1>Prediction Analysis</h1>
+            <p style="color:#94a3b8;font-size:1rem;">AI model results and historical pattern insights.</p>
+        </header>
+
+        <div class="section-tabs">
+            <button class="tab-btn active" onclick="showSection('anomaly',this)">🧠 Anomaly Detection</button>
+            <button class="tab-btn" onclick="showSection('lstm',this)">⚡ LSTM Prediction</button>
+            <button class="tab-btn" onclick="showSection('pattern',this)">📈 Pattern Deviation</button>
+            <button class="tab-btn" onclick="showSection('timeseries',this)">🕒 Time Series</button>
+        </div>
+
+        <div id="anomaly" class="pred-section glass-container active">
+            <h2>Anomaly Detection Results</h2>
+            <div class="pred-data-box">
+                {% if anomaly %}
+                <p><b>Status</b><br><span class="value-pill {% if anomaly.status == 'Normal' %}value-normal{% else %}value-anomaly{% endif %}">{{ anomaly.status if anomaly.status is defined else anomaly }}</span></p>
+                <p style="margin-top:0.8rem;"><b>Sample Output</b><br><span class="value-pill value-default">{{ anomaly.output if anomaly.output is defined else '' }}</span></p>
+                {% else %}
+                <p style="color:#64748b;">ℹ️ Add <code style="background:rgba(255,255,255,0.08);padding:0.1rem 0.4rem;border-radius:0.3rem;">data/simulated_data.csv</code> for real results.</p>
+                {% endif %}
             </div>
-            <div id="anomaly" class="pred-section" style="display:block;">
-                <h2>Anomaly Detection Results</h2>
-                <div style="background:rgba(40,40,60,0.85); border-radius:1rem; padding:1.2rem; margin-bottom:1.5rem;">
-                    {% if anomaly %}
-                    <b>Status:</b> {{ anomaly.status if anomaly.status is defined else anomaly }}<br>
-                    <b>Sample Output:</b> {{ anomaly.output if anomaly.output is defined else '' }}
-                    {% else %}
-                    <b>Note:</b> Please add <code>data/simulated_data.csv</code> for real anomaly detection results.
-                    {% endif %}
-                </div>
+        </div>
+
+        <div id="lstm" class="pred-section glass-container">
+            <h2>LSTM Prediction Results</h2>
+            <div class="pred-data-box">
+                <p><b>Sample Prediction</b><br><span class="value-pill value-default">{{ lstm.prediction }}</span></p>
+                <p style="margin-top:0.8rem;"><b>Fault Type</b><br><span class="value-pill value-anomaly">{{ lstm.fault_type }}</span></p>
+                <p style="margin-top:0.8rem;"><b>Combination</b><br><span class="value-pill value-default">{{ lstm.combination }}</span></p>
             </div>
-            <div id="lstm" class="pred-section" style="display:none;">
-                <h2>LSTM Prediction Results</h2>
-                <div style="background:rgba(40,40,60,0.85); border-radius:1rem; padding:1.2rem; margin-bottom:1.5rem;">
-                    <b>Sample Prediction:</b> {{ lstm.prediction }}<br>
-                    <b>Fault Type:</b> {{ lstm.fault_type }}<br>
-                    <b>Combination:</b> {{ lstm.combination }}
-                </div>
+        </div>
+
+        <div id="pattern" class="pred-section glass-container">
+            <h2>Pattern Deviation Results</h2>
+            <div class="pred-data-box">
+                <p><b>Deviation Score</b><br><span class="value-pill value-default">{{ pattern.deviation if pattern and pattern.deviation is defined else pattern }}</span></p>
             </div>
-            <div id="pattern" class="pred-section" style="display:none;">
-                <h2>Pattern Deviation Results</h2>
-                <div style="background:rgba(40,40,60,0.85); border-radius:1rem; padding:1.2rem; margin-bottom:1.5rem;">
-                    <b>Sample Deviation Score:</b> {{ pattern.deviation if pattern and pattern.deviation is defined else
-                    pattern }}
-                </div>
+        </div>
+
+        <div id="timeseries" class="pred-section glass-container">
+            <h2>Time Series Results</h2>
+            <div class="pred-data-box">
+                <p style="color:#64748b;">⏳ Time series prediction module is not yet implemented.</p>
             </div>
-            <div id="timeseries" class="pred-section" style="display:none;">
-                <h2>Time Series Results</h2>
-                <div style="background:rgba(40,40,60,0.85); border-radius:1rem; padding:1.2rem; margin-bottom:1.5rem;">
-                    <b>Note:</b> Time series prediction module not implemented yet.
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
+
     <script>
-        function showSection(section) {
-            document.querySelectorAll('.pred-section').forEach(el => el.style.display = 'none');
-            document.getElementById(section).style.display = 'block';
-        }
+    function showSection(id, btn) {
+        document.querySelectorAll('.pred-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
     </script>
 </body>
+</html>

@@ -3,21 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Machine Error Prediction</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Login | AURISPOWER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:         #0f0f1a;
+            --glass-bg:   rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.12);
+            --accent:     #22d3ee;
+            --accent2:    #a78bfa;
+            --text-dim:   #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%);
+            overflow: hidden;
+            color: #fff;
+            position: relative;
+        }
+
+        /* Ambient orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(167,139,250,0.35) 0%, transparent 70%);
+            top: -150px; left: -120px;
+            filter: blur(72px);
+            pointer-events: none;
+            animation: orb1 16s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(34,211,238,0.3) 0%, transparent 70%);
+            bottom: -120px; right: -80px;
+            filter: blur(72px);
+            pointer-events: none;
+            animation: orb2 20s ease-in-out infinite alternate;
+        }
+        @keyframes orb1 { to { transform: translate(60px, 80px) scale(1.1); } }
+        @keyframes orb2 { to { transform: translate(-50px,-40px) scale(1.08); } }
+
+        /* Canvas */
+        #bg-canvas {
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+
+        /* SVG huge text bg */
+        #svg-bg {
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
+            overflow: hidden;
+        }
+        .svg-text-row {
+            font-family: 'Outfit', sans-serif;
+            font-size: 150px;
+            font-weight: 800;
+            letter-spacing: 14px;
+            fill: none;
+            stroke: rgba(34, 211, 238, 0.07);
+            stroke-width: 1.5px;
+        }
+        @keyframes drift1 { from { transform:translateX(0);    } to { transform:translateX(-50%); } }
+        @keyframes drift2 { from { transform:translateX(-50%); } to { transform:translateX(0);    } }
+        @keyframes drift3 { from { transform:translateX(-15%); } to { transform:translateX(-65%); } }
+        @keyframes drift4 { from { transform:translateX(-40%); } to { transform:translateX(10%);  } }
+        @keyframes drift5 { from { transform:translateX(-5%);  } to { transform:translateX(-55%); } }
+        .row1 { animation: drift1 30s linear infinite; }
+        .row2 { animation: drift2 38s linear infinite; }
+        .row3 { animation: drift3 45s linear infinite; }
+        .row4 { animation: drift4 32s linear infinite; }
+        .row5 { animation: drift5 55s linear infinite; }
+
+        /* Login wrapper */
+        .login-wrapper {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; width: 100%;
+            max-width: 440px; padding: 0 1.5rem;
+            animation: floatIn 0.9s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes floatIn {
+            from { opacity:0; transform:translateY(32px) scale(0.95); }
+            to   { opacity:1; transform:translateY(0)    scale(1);    }
+        }
+
+        .branding-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.8rem; font-weight: 800;
+            letter-spacing: 3px; text-align: center;
+            margin-bottom: 1.6rem;
+            background: linear-gradient(135deg, #a78bfa 0%, #22d3ee 50%, #f472b6 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3.5s linear infinite;
+        }
+        @keyframes shine {
+            0%   { background-position: 0%   center; }
+            100% { background-position: 200% center; }
+        }
+
+        .glass-card {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            padding: 2.4rem 2rem;
+        }
+
+        h2 { font-family:'Outfit',sans-serif; font-size:1.7rem; font-weight:800; margin-bottom:0.3rem; color:#fff; }
+        .sub { color: var(--text-dim); font-size:0.9rem; margin-bottom:2rem; }
+
+        label { display:block; font-size:0.8rem; font-weight:600; color:var(--text-dim); margin-bottom:0.3rem; }
+
+        input {
+            width:100%; padding:0.75rem 1rem;
+            margin-bottom:1.2rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.75rem;
+            background: rgba(255,255,255,0.06);
+            color:#fff; font-size:0.9rem;
+            font-family:'Inter',sans-serif;
+            outline:none;
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+        }
+        input::placeholder { color:#475569; }
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(34,211,238,0.18);
+            transform: scale(1.01);
+            background: rgba(255,255,255,0.09);
+        }
+
+        button[type="submit"] {
+            width:100%; padding:0.9rem;
+            background: linear-gradient(135deg, #a78bfa 0%, #22d3ee 70%);
+            background-size: 200% auto;
+            color:#fff; font-weight:700; border:none;
+            border-radius:0.75rem; font-size:0.95rem;
+            font-family:'Outfit',sans-serif;
+            cursor:pointer;
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, background-position 0.4s;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-3px) scale(1.025);
+            box-shadow: 0 12px 28px rgba(34,211,238,0.35);
+            background-position: right center;
+        }
+        button[type="submit"]:active { transform: scale(0.97); }
+
+        .error-msg { color:#f87171; font-size:0.87rem; margin-top:1rem; font-weight:600; }
+
+        .signup-link {
+            margin-top:1.5rem; font-size:0.87rem;
+            color:var(--text-dim); text-align:center;
+        }
+        .signup-link a { color:var(--accent2); font-weight:700; text-decoration:none; }
+        .signup-link a:hover { color:#c4b5fd; }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
-    <form method="post" action="/login">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
-        <button type="submit">Login</button>
-    </form>
-    <p>New user? <a href="/signup">Create your account</a></p>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Huge vector AURISPOWER text -->
+    <svg id="svg-bg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <text class="svg-text-row row1" y="130" xml:space="preserve">AURISPOWER ⚡ AURISPOWER ⚡ AURISPOWER ⚡ AURISPOWER ⚡ AURISPOWER ⚡</text>
+        <text class="svg-text-row row2" y="290" xml:space="preserve">AURISPOWER ◈ AURISPOWER ◈ AURISPOWER ◈ AURISPOWER ◈ AURISPOWER ◈</text>
+        <text class="svg-text-row row3" y="450" xml:space="preserve">AURISPOWER ⏻ AURISPOWER ⏻ AURISPOWER ⏻ AURISPOWER ⏻ AURISPOWER ⏻</text>
+        <text class="svg-text-row row4" y="610" xml:space="preserve">AURISPOWER ◆ AURISPOWER ◆ AURISPOWER ◆ AURISPOWER ◆ AURISPOWER ◆</text>
+        <text class="svg-text-row row5" y="770" xml:space="preserve">AURISPOWER ★ AURISPOWER ★ AURISPOWER ★ AURISPOWER ★ AURISPOWER ★</text>
+        <text class="svg-text-row row1" y="930" xml:space="preserve">AURISPOWER ✦ AURISPOWER ✦ AURISPOWER ✦ AURISPOWER ✦ AURISPOWER ✦</text>
+        <text class="svg-text-row row3" y="1080" xml:space="preserve">AURISPOWER ◉ AURISPOWER ◉ AURISPOWER ◉ AURISPOWER ◉ AURISPOWER ◉</text>
+    </svg>
+
+    <div class="login-wrapper">
+        <span class="branding-text">AURISPOWER</span>
+
+        <div class="glass-card">
+            <h2>Welcome Back</h2>
+            <p class="sub">Sign in to your dashboard</p>
+
+            <form method="post" action="/login" style="all:unset;display:block;width:100%;">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+
+                <button type="submit">Login →</button>
+
+                {% if error %}
+                <p class="error-msg">⚠ {{ error }}</p>
+                {% endif %}
+            </form>
+        </div>
+
+        <p class="signup-link">
+            New to AURISPOWER? <a href="/signup">Create an account →</a>
+        </p>
+    </div>
+
+    <script>
+    // Canvas glyph animation
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    const GLYPHS = ['⚡','◈','⏻','◆','★','✦','◉','⬡','⬢'];
+    let W, H, particles = [], sparks = [];
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+
+    function mkParticle() {
+        return {
+            x: Math.random()*W, y: Math.random()*H,
+            vx: (Math.random()-0.5)*0.3,
+            vy: (Math.random()-0.5)*0.3,
+            size: 14 + Math.random()*18,
+            glyph: GLYPHS[Math.floor(Math.random()*GLYPHS.length)],
+            opacity: 0.04 + Math.random()*0.07,
+            rot: Math.random()*Math.PI*2,
+            rotSpeed: (Math.random()-0.5)*0.015,
+            hue: Math.random()*60 - 30
+        };
+    }
+
+    function init() { resize(); particles = Array.from({length:55},mkParticle); }
+
+    function spawnSparks(x,y) {
+        for(let i=0;i<8;i++) {
+            const a=Math.random()*Math.PI*2;
+            const s=1+Math.random()*3;
+            sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col:'rgba(34,211,238,'});
+        }
+    }
+
+    function loop() {
+        ctx.clearRect(0,0,W,H);
+        particles.forEach(p => {
+            p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotSpeed;
+            if(p.x<-60) p.x=W+60; if(p.x>W+60) p.x=-60;
+            if(p.y<-60) p.y=H+60; if(p.y>H+60) p.y=-60;
+            ctx.save();
+            ctx.translate(p.x,p.y);
+            ctx.rotate(p.rot);
+            ctx.font=`${p.size}px Outfit,sans-serif`;
+            ctx.fillStyle=`hsla(${200+p.hue},80%,70%,${p.opacity})`;
+            ctx.textAlign='center';
+            ctx.textBaseline='middle';
+            ctx.fillText(p.glyph,0,0);
+            ctx.restore();
+        });
+        sparks=sparks.filter(s=>s.life>0.05);
+        sparks.forEach(s=>{
+            s.x+=s.vx; s.y+=s.vy;
+            s.vx*=0.93; s.vy*=0.93;
+            s.life*=0.88;
+            ctx.beginPath();
+            ctx.arc(s.x,s.y,2,0,Math.PI*2);
+            ctx.fillStyle=s.col+s.life+')';
+            ctx.fill();
+        });
+        requestAnimationFrame(loop);
+    }
+
+    // Random sparks
+    setInterval(()=>{
+        spawnSparks(Math.random()*W, Math.random()*H);
+    },1200);
+
+    window.addEventListener('resize',resize);
+    init(); loop();
+    </script>
 </body>
 </html>
