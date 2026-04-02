@@ -506,6 +506,19 @@
                     </div>
                 </div>
 
+                <!-- ── Gemini AI Insights Widget ── -->
+                <div class="glass-container" style="padding:1rem 1.4rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+                        <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">✨ Gemini AI Predictive Insights</div>
+                        <button onclick="loadInsights()" id="insights-refresh-btn"
+                            style="padding:0.3rem 0.8rem;border:1px solid rgba(167,139,250,0.3);border-radius:0.5rem;background:rgba(167,139,250,0.1);color:#a78bfa;font-size:0.75rem;cursor:pointer;transition:all 0.2s;"
+                            onmouseover="this.style.background='rgba(167,139,250,0.2)'" onmouseout="this.style.background='rgba(167,139,250,0.1)'">↻ Refresh</button>
+                    </div>
+                    <div id="insights-list" style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <div style="color:#555;font-size:0.85rem;">Loading AI insights...</div>
+                    </div>
+                </div>
+
                 <!-- ── 8 Live Charts ── -->
                 <div class="charts-wrapper"
                     style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
@@ -568,24 +581,49 @@
 
             </div><!-- /dashboard-content -->
 
-            <!-- ── Chatbot Interface ── -->
+            <!-- ── Chatbot Interface (Gemini AI) ── -->
             <div id="chatbot-container" style="position:fixed;bottom:24px;right:24px;z-index:1000;">
                 <button id="chatbot-toggle" onclick="toggleChat()"
-                    style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#22d3ee);border:none;box-shadow:0 6px 20px rgba(34,211,238,0.35);cursor:pointer;font-size:1.5rem;display:flex;align-items:center;justify-content:center;transition:transform 0.3s;">🤖</button>
+                    style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#22d3ee);border:none;box-shadow:0 6px 20px rgba(34,211,238,0.35);cursor:pointer;font-size:1.5rem;display:flex;align-items:center;justify-content:center;transition:transform 0.3s;">✨</button>
                 <div id="chatbot-window"
-                    style="display:none;position:absolute;bottom:72px;right:0;width:340px;height:480px;background:rgba(15,15,26,0.96);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:1.2rem;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.6);">
-                    <div style="padding:1rem 1.2rem;background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-weight:700;color:#22d3ee;font-family:'Outfit',sans-serif;">🤖 System Assistant</span>
+                    style="display:none;position:absolute;bottom:72px;right:0;width:360px;height:520px;background:rgba(15,15,26,0.97);backdrop-filter:blur(20px);border:1px solid rgba(167,139,250,0.3);border-radius:1.2rem;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.6);">
+                    <div style="padding:0.85rem 1.2rem;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(34,211,238,0.1));border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <span style="font-weight:700;color:#fff;font-family:'Outfit',sans-serif;font-size:0.95rem;">✨ AI Assistant</span>
+                            <div style="font-size:0.7rem;color:#a78bfa;margin-top:1px;">Powered by Gemini</div>
+                        </div>
                         <span onclick="toggleChat()" style="cursor:pointer;font-size:1.3rem;color:#94a3b8;">&times;</span>
                     </div>
                     <div id="chat-messages"
                         style="flex:1;padding:1rem;overflow-y:auto;display:flex;flex-direction:column;gap:0.7rem;background:transparent;">
-                        <div style="align-self:flex-start;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);padding:0.75rem 1rem;border-radius:0.9rem 0.9rem 0.9rem 0;max-width:85%;font-size:0.88rem;color:#e2e8f0;line-height:1.5;">
-                            Hello! I'm your AI assistant. I'll notify you of any critical system faults detected.
+                        <div style="align-self:flex-start;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.25);padding:0.75rem 1rem;border-radius:0.4rem 0.9rem 0.9rem 0.4rem;max-width:88%;font-size:0.86rem;color:#e2e8f0;line-height:1.5;">
+                            Hi! I'm your <strong style="color:#a78bfa;">Gemini AI assistant</strong>. Ask me anything about machine faults, sensor readings, or maintenance advice.
                         </div>
+                    </div>
+                    <!-- Typing indicator -->
+                    <div id="chat-typing" style="display:none;padding:0 1rem 0.5rem;">
+                        <div style="align-self:flex-start;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);padding:0.6rem 1rem;border-radius:0.9rem;display:inline-flex;gap:4px;align-items:center;">
+                            <span style="width:7px;height:7px;background:#a78bfa;border-radius:50%;animation:typingDot 1.2s infinite 0s;"></span>
+                            <span style="width:7px;height:7px;background:#a78bfa;border-radius:50%;animation:typingDot 1.2s infinite 0.2s;"></span>
+                            <span style="width:7px;height:7px;background:#a78bfa;border-radius:50%;animation:typingDot 1.2s infinite 0.4s;"></span>
+                        </div>
+                    </div>
+                    <!-- Input bar -->
+                    <div style="padding:0.75rem;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:0.5rem;background:rgba(255,255,255,0.02);">
+                        <input id="chat-input" type="text" placeholder="Ask about a fault, sensor, or maintenance..."
+                            style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:0.7rem;padding:0.6rem 0.9rem;color:#fff;font-size:0.85rem;outline:none;"
+                            onkeydown="if(event.key==='Enter')sendChatMessage()" />
+                        <button onclick="sendChatMessage()"
+                            style="padding:0.6rem 1rem;background:linear-gradient(135deg,#a78bfa,#22d3ee);border:none;border-radius:0.7rem;color:#fff;font-weight:700;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Send</button>
                     </div>
                 </div>
             </div>
+            <style>
+                @keyframes typingDot {
+                    0%,60%,100% { transform: translateY(0); opacity:0.4; }
+                    30% { transform: translateY(-5px); opacity:1; }
+                }
+            </style>
         </main>
     </div>
 
@@ -743,47 +781,42 @@
             return div.innerHTML;
         }
 
-        // ── Fault Alert Polling (every 10 seconds) ──
+        // ── Fault Alert Polling (every 12 seconds) ──
         async function pollFaultAlert() {
             try {
                 const res = await fetch('/api/fault-alert');
                 const data = await res.json();
 
-                // Handle rate limiting
                 if (data.rate_limited) {
                     console.log(`Rate limited: ${data.message}`);
-                    return; // Skip silently
+                    return;
                 }
 
                 if (data.alert) {
-                    // Email status for toast
                     const emailInfo = data.email_sent ? '📧 Email draft sent' : '📋 Draft saved locally';
                     const remaining = data.alerts_remaining !== undefined ? ` | ${data.alerts_remaining} alerts left/min` : '';
+                    const aiBadge = data.ai_generated ? ' ✨' : '';
 
-                    // Show toast
                     showToast(
                         data.severity,
-                        `⚠️ ${data.fault_type}`,
+                        `⚠️ ${data.fault_type}${aiBadge}`,
                         `${data.combination}\n${emailInfo}${remaining}`
                     );
 
-                    // Update badge
                     solutionCount++;
                     const badge = document.getElementById('solutions-badge');
                     badge.textContent = solutionCount > 9 ? '9+' : solutionCount;
                     badge.style.display = 'flex';
 
-                    // Add chatbot message
-                    const emailNote = data.email_sent ? '📧 Email draft sent to your inbox' : '📋 Solution saved locally';
-                    const alertMsg = `<strong>⚠️ LSTM Alert: ${data.fault_type}</strong><br/><em>${data.combination}</em><br/><small>${emailNote} — check 📧 Solutions panel</small>`;
-                    addChatMessage(alertMsg);
+                    const emailNote = data.email_sent ? '📧 Email draft sent' : '📋 Solution saved locally';
+                    const aiNote = data.ai_generated ? '<br/><small style="color:#a78bfa;">✨ Analysis by Gemini AI</small>' : '';
+                    const alertMsg = `<strong>⚠️ ${data.fault_type}</strong><br/><em>${data.combination}</em><br/><small>${emailNote}</small>${aiNote}`;
+                    addChatMessage(alertMsg, 'bot');
 
-                    // Shake chatbot button
                     const btn = document.getElementById('chatbot-toggle');
                     btn.style.animation = 'shake 0.5s';
                     setTimeout(() => btn.style.animation = '', 500);
 
-                    // Refresh solutions if panel is open
                     if (document.getElementById('solutions-panel').style.display === 'flex') {
                         loadSolutions();
                     }
@@ -793,26 +826,81 @@
             }
         }
 
-        // ── Chatbot ──
+        // ── Gemini Chatbot ──
         function toggleChat() {
             const win = document.getElementById('chatbot-window');
             const isHidden = win.style.display === 'none';
             win.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden) document.getElementById('chat-input').focus();
         }
 
-        function addChatMessage(message) {
+        function addChatMessage(html, side = 'bot') {
             const chatBox = document.getElementById('chat-messages');
             const msgDiv = document.createElement('div');
-            msgDiv.style.alignSelf = 'flex-start';
-            msgDiv.style.background = '#22d3ee22';
-            msgDiv.style.border = '1px solid #22d3ee';
-            msgDiv.style.padding = '0.8rem';
-            msgDiv.style.borderRadius = '0.8rem 0.8rem 0.8rem 0';
-            msgDiv.style.maxWidth = '85%';
-            msgDiv.style.marginBottom = '0.5rem';
-            msgDiv.innerHTML = message;
+            if (side === 'user') {
+                msgDiv.style.cssText = 'align-self:flex-end;background:linear-gradient(135deg,rgba(167,139,250,0.25),rgba(34,211,238,0.15));border:1px solid rgba(167,139,250,0.3);padding:0.65rem 0.9rem;border-radius:0.9rem 0.4rem 0.4rem 0.9rem;max-width:80%;font-size:0.86rem;color:#e2e8f0;line-height:1.5;';
+            } else {
+                msgDiv.style.cssText = 'align-self:flex-start;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);padding:0.75rem 1rem;border-radius:0.4rem 0.9rem 0.9rem 0.4rem;max-width:88%;font-size:0.86rem;color:#e2e8f0;line-height:1.55;';
+            }
+            msgDiv.innerHTML = html;
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            input.value = '';
+
+            // Show user bubble
+            addChatMessage(escapeHtml(msg), 'user');
+
+            // Show typing indicator
+            const typing = document.getElementById('chat-typing');
+            typing.style.display = 'block';
+            document.getElementById('chat-messages').scrollTop = 9999;
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                typing.style.display = 'none';
+
+                const reply = data.response || 'Sorry, I could not get a response.';
+                // Convert newlines to <br> for display
+                addChatMessage(escapeHtml(reply).replace(/\n/g, '<br/>'), 'bot');
+            } catch (e) {
+                typing.style.display = 'none';
+                addChatMessage('⚠️ Error reaching AI. Please try again.', 'bot');
+            }
+        }
+
+        // ── Gemini Insights ──
+        async function loadInsights() {
+            const list = document.getElementById('insights-list');
+            const btn = document.getElementById('insights-refresh-btn');
+            btn.textContent = '⏳ Loading...';
+            list.innerHTML = '<div style="color:#555;font-size:0.85rem;">Asking Gemini AI...</div>';
+            try {
+                const res = await fetch('/api/insights');
+                const data = await res.json();
+                btn.textContent = '↻ Refresh';
+                if (data.insights && data.insights.length > 0) {
+                    list.innerHTML = data.insights.map(insight => {
+                        const color = insight.startsWith('🔴') ? '#ef4444' : insight.startsWith('🟡') ? '#f59e0b' : '#22c55e';
+                        return `<div style="padding:0.55rem 0.9rem;border-radius:0.6rem;background:rgba(255,255,255,0.03);border-left:3px solid ${color};font-size:0.84rem;color:#cbd5e1;line-height:1.5;">${escapeHtml(insight)}</div>`;
+                    }).join('');
+                } else {
+                    list.innerHTML = '<div style="color:#555;font-size:0.85rem;">No insights available. Add your Gemini API key to enable AI insights.</div>';
+                }
+            } catch(e) {
+                btn.textContent = '↻ Refresh';
+                list.innerHTML = '<div style="color:#ef4444;font-size:0.85rem;">Failed to load insights.</div>';
+            }
         }
 
         // ── Charts Data Polling (every 2 seconds) ──
@@ -895,11 +983,12 @@
         }
 
         // ── Start polling ──
-        setInterval(fetchDataAndRender, 2000);  // Charts every 2s
-        setInterval(pollFaultAlert, 12000);      // Fault alerts every 12s
+        setInterval(fetchDataAndRender, 2000);
+        setInterval(pollFaultAlert, 12000);
         fetchDataAndRender();
-        // Initial fault alert after 3s delay
         setTimeout(pollFaultAlert, 3000);
+        // Load AI insights on page load (after 2s delay to let server stabilise)
+        setTimeout(loadInsights, 2000);
     </script>
 </body>
 
