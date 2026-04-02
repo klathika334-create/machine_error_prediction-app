@@ -73,8 +73,12 @@ def intro():
 def login():
     if request.method == 'POST':
         try:
-            username = request.form['username'].strip()
-            password = request.form['password'].strip()
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '').strip()
+            
+            if not username or not password:
+                return render_template('login.html', error='Username and password are required.')
+                
             users = mongo.db.users
             user = users.find_one({'username': username})
             
@@ -93,7 +97,7 @@ def login():
                 return render_template('login.html', error='Invalid username or password.')
         except Exception as e:
             print(f"[Login Error] {e}")
-            return render_template('login.html', error='System error during login. Please try again later.')
+            return render_template('login.html', error='System error during login. Please try again.')
     return render_template('login.html')
 
 @app.route('/profile')
@@ -126,18 +130,27 @@ def logout():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        confirm = request.form['confirm']
-        role = request.form.get('role', 'user')
-        if password != confirm:
-            return render_template('signup.html', error='Passwords do not match')
-        users = mongo.db.users
-        if users.find_one({'username': username}):
-            return render_template('signup.html', error='Username already exists')
-        pw_hash = generate_password_hash(password)
-        users.insert_one({'username': username, 'password': pw_hash, 'role': role})
-        return render_template('signup.html', success='User created successfully! Please log in.')
+        try:
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
+            confirm = request.form.get('confirm_password', '')
+            role = request.form.get('role', 'user')
+            
+            if not username or not password:
+                return render_template('signup.html', error='Username and password are required.')
+                
+            if password != confirm:
+                return render_template('signup.html', error='Passwords do not match.')
+            users = mongo.db.users
+            if users.find_one({'username': username}):
+                return render_template('signup.html', error='Username already exists')
+            pw_hash = generate_password_hash(password)
+            users.insert_one({'username': username, 'password': pw_hash, 'role': role})
+            return render_template('signup.html', success='User created successfully! Please log in.')
+        except Exception as e:
+            print(f"[Signup Error] {e}")
+            return render_template('signup.html', error='System error during signup. Please try again.')
+            
     return render_template('signup.html')
 
 # Load dataset globally for streaming
