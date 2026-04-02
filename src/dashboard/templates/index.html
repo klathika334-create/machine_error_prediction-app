@@ -345,6 +345,85 @@
                 transform: rotate(0deg);
             }
         }
+
+        /* ── Toggle Switches (AI Controls) ── */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            padding: 0.1rem 0.5rem;
+        }
+
+        .toggle-label {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .3s;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #94a3b8;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: rgba(167, 139, 250, 0.2);
+            border-color: rgba(167, 139, 250, 0.4);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+            background-color: #a78bfa;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 1.2rem 0;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 0.9rem;
+            padding-left: 0.5rem;
+        }
     </style>
 </head>
 
@@ -397,6 +476,25 @@
                 {% if session['role'] in ['admin', 'owner'] %}
                 <button class="nav-btn" onclick="location.href='/users'">👥 User Management</button>
                 {% endif %}
+
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">System Controls</div>
+                
+                <div class="toggle-container">
+                    <span class="toggle-label">Gemini Insights</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-insights" onchange="updateAISetting('gemini_insights', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-container">
+                    <span class="toggle-label">Mail Solutions</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-solutions" onchange="updateAISetting('gemini_solutions', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
             <button onclick="location.href='/logout'"
                 style="width:100%;padding:0.8rem;border:none;border-radius:0.8rem;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);font-weight:700;cursor:pointer;margin-top:1rem;">
@@ -793,29 +891,35 @@
                 }
 
                 if (data.alert) {
-                    const emailInfo = data.email_sent ? '📧 Email draft sent' : '📋 Draft saved locally';
-                    const remaining = data.alerts_remaining !== undefined ? ` | ${data.alerts_remaining} alerts left/min` : '';
-                    const aiBadge = data.ai_generated ? ' ✨' : '';
-
-                    showToast(
-                        data.severity,
-                        `⚠️ ${data.fault_type}${aiBadge}`,
-                        `${data.combination}\n${emailInfo}${remaining}`
-                    );
-
+                    // Always update solutions history badge even if silent
                     solutionCount++;
                     const badge = document.getElementById('solutions-badge');
-                    badge.textContent = solutionCount > 9 ? '9+' : solutionCount;
+                    badge.textContent = solutionCount;
                     badge.style.display = 'flex';
 
-                    const emailNote = data.email_sent ? '📧 Email draft sent' : '📋 Solution saved locally';
-                    const aiNote = data.ai_generated ? '<br/><small style="color:#a78bfa;">✨ Analysis by Gemini AI</small>' : '';
-                    const alertMsg = `<strong>⚠️ ${data.fault_type}</strong><br/><em>${data.combination}</em><br/><small>${emailNote}</small>${aiNote}`;
-                    addChatMessage(alertMsg, 'bot');
+                    // Only show notifications (toast + chat) if setting is ON
+                    if (data.show_frontend_notification !== false) {
+                        const emailInfo = data.email_sent ? '📧 Email draft sent' : '📋 Draft saved locally';
+                        const remaining = data.alerts_remaining !== undefined ? ` | ${data.alerts_remaining} alerts left/min` : '';
+                        const aiBadge = data.ai_generated ? ' ✨' : '';
 
-                    const btn = document.getElementById('chatbot-toggle');
-                    btn.style.animation = 'shake 0.5s';
-                    setTimeout(() => btn.style.animation = '', 500);
+                        showToast(
+                            data.severity,
+                            `⚠️ ${data.fault_type}${aiBadge}`,
+                            `${data.combination}\n${emailInfo}${remaining}`
+                        );
+
+                        const emailNote = data.email_sent ? '📧 Email draft sent' : '📋 Solution saved locally';
+                        const aiNote = data.ai_generated ? '<br/><small style="color:#a78bfa;">✨ Analysis by Gemini AI</small>' : '';
+                        const alertMsg = `<strong>⚠️ ${data.fault_type}</strong><br/><em>${data.combination}</em><br/><small>${emailNote}</small>${aiNote}`;
+                        addChatMessage(alertMsg, 'bot');
+
+                        const btn = document.getElementById('chatbot-toggle');
+                        btn.style.animation = 'shake 0.5s';
+                        setTimeout(() => btn.style.animation = '', 500);
+                    } else {
+                        console.log(`[Silent Mode] Fault detected: ${data.fault_type}. Handled in background.`);
+                    }
 
                     if (document.getElementById('solutions-panel').style.display === 'flex') {
                         loadSolutions();
@@ -982,12 +1086,55 @@
             }
         }
 
+        // ── Gemini AI Controls ──
+        async function fetchAISettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                document.getElementById('toggle-insights').checked = settings.gemini_insights;
+                document.getElementById('toggle-solutions').checked = settings.gemini_solutions;
+                
+                // If insights are disabled, update the widget UI
+                if (!settings.gemini_insights) {
+                    const list = document.getElementById('insights-list');
+                    if (list) list.innerHTML = '<div style="color:#555;font-size:0.85rem;">Gemini Insights are currently disabled globally.</div>';
+                }
+            } catch (e) {
+                console.error('Error fetching settings:', e);
+            }
+        }
+
+        async function updateAISetting(key, value) {
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [key]: value })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const status = value ? 'Enabled' : 'Disabled';
+                    const feature = key === 'gemini_insights' ? 'Gemini Insights' : 'Mail Solutions';
+                    showToast('info', '⚙️ Setting Updated', `${feature} is now ${status}.`);
+                    
+                    if (key === 'gemini_insights') {
+                        if (value) loadInsights();
+                        else document.getElementById('insights-list').innerHTML = '<div style="color:#555;font-size:0.85rem;">Gemini Insights are currently disabled globally.</div>';
+                    }
+                }
+            } catch (e) {
+                console.error('Error updating setting:', e);
+                showToast('error', 'Update Failed', 'Could not save AI settings.');
+            }
+        }
+
         // ── Start polling ──
         setInterval(fetchDataAndRender, 2000);
         setInterval(pollFaultAlert, 12000);
         fetchDataAndRender();
         setTimeout(pollFaultAlert, 3000);
-        // Load AI insights on page load (after 2s delay to let server stabilise)
+        // Load settings and data
+        fetchAISettings();
         setTimeout(loadInsights, 2000);
     </script>
 </body>

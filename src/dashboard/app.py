@@ -40,6 +40,25 @@ ai_settings = {
     'gemini_solutions': True
 }
 
+def init_db():
+    """Ensure essential users exist on start."""
+    with app.app_context():
+        try:
+            users = mongo.db.users
+            if not users.find_one({'username': 'admin'}):
+                users.insert_one({
+                    'username': 'admin',
+                    'password': generate_password_hash('admin123'),
+                    'role': 'admin',
+                    'login_count': 0,
+                    'last_login': None
+                })
+                print("[DB] Default admin user initialized (admin/admin123).")
+        except Exception as e:
+            print(f"[DB] Error initializing users: {e}")
+
+init_db()
+
 @app.route('/')
 def home():
     if 'username' not in session:
@@ -53,23 +72,28 @@ def intro():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        users = mongo.db.users
-        user = users.find_one({'username': username})
-        if user and check_password_hash(user['password'], password):
-            session['username'] = username
-            session['role'] = user.get('role', 'user')
+        try:
+            username = request.form['username'].strip()
+            password = request.form['password'].strip()
+            users = mongo.db.users
+            user = users.find_one({'username': username})
             
-            # Track login stats
-            users.update_one({'_id': user['_id']}, {
-                '$inc': {'login_count': 1},
-                '$set': {'last_login': datetime.now()}
-            })
-            
-            return redirect(url_for('home'))
-        else:
-            return render_template('login.html', error='Invalid credentials')
+            if user and check_password_hash(user['password'], password):
+                session['username'] = username
+                session['role'] = user.get('role', 'user')
+                
+                # Track login stats
+                users.update_one({'_id': user['_id']}, {
+                    '$inc': {'login_count': 1},
+                    '$set': {'last_login': datetime.now()}
+                })
+                
+                return redirect(url_for('home'))
+            else:
+                return render_template('login.html', error='Invalid username or password.')
+        except Exception as e:
+            print(f"[Login Error] {e}")
+            return render_template('login.html', error='System error during login. Please try again later.')
     return render_template('login.html')
 
 @app.route('/profile')
@@ -148,6 +172,22 @@ if not df_dataset.empty:
         print("Pattern Deviation model trained.")
     except Exception as e:
         print(f"Error training Pattern Deviation: {e}")
+
+@app.route('/api/settings', methods=['GET', 'POST'])
+def handle_settings():
+    """Manage global AI settings."""
+    global ai_settings
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            if 'gemini_insights' in data:
+                ai_settings['gemini_insights'] = bool(data['gemini_insights'])
+            if 'gemini_solutions' in data:
+                ai_settings['gemini_solutions'] = bool(data['gemini_solutions'])
+            return jsonify({'success': True, 'settings': ai_settings})
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+    return jsonify(ai_settings)
 
 CURRENT_INDEX = 0
 
@@ -449,7 +489,17 @@ def fault_alert():
                     if val is not None and str(val) != 'nan':
                         sensor_readings[col] = round(float(val), 3)
 
-            solution = generate_solution_with_ai(display_fault, display_combo, sensor_readings)
+            # Always prefer Gemini AI for quality drafts, even in Silent Mode
+            try:
+                solution = generate_solution_with_ai(display_fault, display_combo, sensor_readings)
+            except Exception as e:
+                print(f"[Gemini] Error generating AI solution: {e}")
+                from genai.explanation import generate_solution
+                solution = generate_solution(display_fault, display_combo)
+                solution['ai_generated'] = False
+            
+            # AI setting toggle only controls the visual interruption (notification)
+            solution['silent_mode'] = not ai_settings.get('gemini_solutions', True)
             
             # Record this alert timestamp
             alert_timestamps.append(now)
@@ -459,7 +509,7 @@ def fault_alert():
             while len(solutions_history) > MAX_SOLUTIONS:
                 solutions_history.pop()
             
-            # Auto-send email draft
+            # Always send email draft (even if solutions toggled OFF, it acts as a background log)
             email_link = send_email_draft(solution)
             solution['email_link'] = email_link if isinstance(email_link, str) else None
             solution['email_sent'] = bool(email_link)
@@ -474,6 +524,7 @@ def fault_alert():
                 'timestamp': solution['timestamp'],
                 'prediction_raw': prediction_raw,
                 'ai_generated': solution.get('ai_generated', False),
+                'show_frontend_notification': ai_settings.get('gemini_solutions', True),
                 'email_sent': bool(email_link),
                 'email_link': solution['email_link'],
                 'alerts_remaining': MAX_ALERTS_PER_MINUTE - len(alert_timestamps)
@@ -639,6 +690,10 @@ def api_insights():
     """Gemini-powered predictive trend insights from recent sensor data."""
     if 'username' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
+        
+    if not ai_settings.get('gemini_insights', True):
+        return jsonify({'success': False, 'insights': [], 'disabled': True, 'message': 'Gemini Insights are currently disabled.'})
+
     try:
         if df_dataset.empty:
             return jsonify({'insights': ['Dataset not loaded.'], 'success': False})
