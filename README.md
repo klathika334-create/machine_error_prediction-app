@@ -4,6 +4,7 @@ emoji: 🚀
 colorFrom: blue
 colorTo: indigo
 sdk: docker
+python_version: 3.10
 pinned: false
 ---
 
