@@ -1,3 +1,12 @@
+---
+title: Aurispower Machine Prediction
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # Machine Error Prediction
 
 This project implements a machine learning system using AI fundamentals and LSTM to predict machine errors and provide preventive maintenance suggestions.

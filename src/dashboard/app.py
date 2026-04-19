@@ -24,8 +24,8 @@ from ai_ml.anomaly_detection import AnomalyDetection
 from ai_ml.pattern_deviation import PatternDeviation
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Replace with a secure key
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/machine_error_db'
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_fallback')
+app.config['MONGO_URI'] = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/machine_error_db')
 mongo = PyMongo(app)
 
 base_dir = os.path.dirname(os.path.abspath(__file__))

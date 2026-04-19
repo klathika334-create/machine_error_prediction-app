@@ -16,3 +16,4 @@ python-dotenv
 flask-pymongo
 werkzeug
 passlib
+gunicorn
